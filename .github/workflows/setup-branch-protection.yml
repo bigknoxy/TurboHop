@@ -1,7 +1,10 @@
 name: Setup Branch Protection
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/setup-branch-protection.yml'
 
 permissions:
   contents: read
@@ -32,4 +35,4 @@ jobs:
             console.log('- PRs required to merge into main');
             console.log('- 1 approval required');
             console.log('- Stale reviews dismissed on new commits');
-            console.log('- Admin bypass enabled');
+            console.log('- Admin bypass enabled (bigknoxy can push directly)');
