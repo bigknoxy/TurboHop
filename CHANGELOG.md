@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.5.2] - 2026-04-05
+
+- fix: eliminate black bars on mobile + add documentation rules (#7) (01d78b6)
+
+
 ## [v0.5.1] - 2026-04-05
 
 - fix: fill entire screen on mobile + add PR workflow rules (#6) (cbf7a86)
