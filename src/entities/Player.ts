@@ -115,24 +115,21 @@ export class Player extends Entity {
 
     if (this.hp <= 0) {
       this.dead = true;
-      // Death slowmo then tumble
-      this.scene.time.timeScale = 0.3;
-      this.scene.time.delayedCall(200, () => {
-        this.scene.time.timeScale = 1;
-        this.scene.tweens.add({
-          targets: this.sprite,
-          angle: 720, y: this.sprite.y - 40,
-          duration: 400, ease: 'Quad.easeOut',
-          onComplete: () => {
-            this.scene.tweens.add({
-              targets: this.sprite,
-              y: GAME_HEIGHT + 60,
-              duration: 500, ease: 'Quad.easeIn',
-            });
-          },
-        });
-        EventBus.emit('player:dead');
+      // Death tumble with brief pause before fall
+      this.scene.tweens.add({
+        targets: this.sprite,
+        angle: 720, y: this.sprite.y - 40,
+        duration: 400, ease: 'Quad.easeOut',
+        onComplete: () => {
+          this.scene.tweens.add({
+            targets: this.sprite,
+            y: GAME_HEIGHT + 60,
+            duration: 500, ease: 'Quad.easeIn',
+          });
+        },
       });
+      this.scene.cameras.main.flash(150, 255, 50, 50);
+      EventBus.emit('player:dead');
       return;
     }
 
@@ -156,9 +153,11 @@ export class Player extends Entity {
     const bufferedJump = this.jumpComp.update(delta);
     if (bufferedJump) this.emitJump();
 
-    // Jump hang time — reduce effective gravity near apex
-    if (Math.abs(this.body.velocity.y) < 50 && !this.jumpComp.isOnGround) {
-      this.body.setGravityY(-400);
+    // Jump hang time — smooth gravity reduction near apex
+    const absVelY = Math.abs(this.body.velocity.y);
+    if (absVelY < 80 && !this.jumpComp.isOnGround) {
+      const t = 1 - absVelY / 80; // 1 at apex, 0 at threshold
+      this.body.setGravityY(-400 * t);
     } else {
       this.body.setGravityY(0);
     }

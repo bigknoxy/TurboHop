@@ -39,7 +39,6 @@ export class GameScene extends Phaser.Scene {
   private tutorialStep = -1; // -1 = no tutorial
   private tutorialText: Phaser.GameObjects.Text | null = null;
   private tutorialJumped = false;
-  private tutorialLanded = false;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -202,7 +201,6 @@ export class GameScene extends Phaser.Scene {
     if (!this.saveSystem.isTutorialDone()) {
       this.tutorialStep = 0;
       this.tutorialJumped = false;
-      this.tutorialLanded = false;
       this.showTutorialStep();
 
       EventBus.on('player:jump', () => {
@@ -224,7 +222,6 @@ export class GameScene extends Phaser.Scene {
 
       EventBus.on('player:land', () => {
         if (this.tutorialStep === 1 && this.tutorialJumped) {
-          this.tutorialLanded = true;
           this.tutorialStep = 2;
           this.showTutorialStep();
         }
@@ -262,8 +259,9 @@ export class GameScene extends Phaser.Scene {
         const dist = Phaser.Math.Distance.Between(px, py, coin.x, coin.y);
         if (dist < magnetRange) {
           const angle = Phaser.Math.Angle.Between(coin.x, coin.y, px, py);
-          coin.x += Math.cos(angle) * 3;
-          coin.y += Math.sin(angle) * 3;
+          const magnetSpeed = 3 * (delta / 16.67);
+          coin.x += Math.cos(angle) * magnetSpeed;
+          coin.y += Math.sin(angle) * magnetSpeed;
         }
       });
     }
@@ -383,10 +381,9 @@ export class GameScene extends Phaser.Scene {
       this.player.bounce();
       EventBus.emit('enemy:stomp');
 
-      // Hitstop — brief freeze frame for impact
-      this.time.timeScale = 0.1;
-      this.time.delayedCall(50, () => {
-        this.time.timeScale = 1;
+      // Hitstop — camera zoom punch for impact feel
+      this.cameras.main.zoomTo(1.05, 40, 'Sine.easeOut', false, (_cam: Phaser.Cameras.Scene2D.Camera, progress: number) => {
+        if (progress >= 1) this.cameras.main.zoomTo(1, 40);
       });
 
       // Sparkle effect

@@ -4,7 +4,6 @@ import { IComponent } from '../interfaces/IComponent';
 export class JumpComponent implements IComponent {
   private body: Phaser.Physics.Arcade.Body;
   private jumpCount = 0;
-  private maxJumps = 2;
   private isHolding = false;
   private holdTime = 0;
   private maxHoldTime = 300;
@@ -22,13 +21,6 @@ export class JumpComponent implements IComponent {
 
   setDoubleJumpBoost(percent: number): void {
     this.doubleJumpVelocity = this.doubleJumpVelocity * (1 + percent / 100);
-  }
-
-  resetJumps(): void {
-    this.jumpCount = 0;
-    this.isHolding = false;
-    this.holdTime = 0;
-    this.hasReleasedAfterJump = true;
   }
 
   tryJump(): boolean {

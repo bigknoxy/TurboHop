@@ -89,7 +89,6 @@ export class SpawnSystem implements ISystem {
   private spawnPlatform(): void {
     // Scale gaps inversely with speed so jumps remain possible at high difficulty
     const speedFactor = INITIAL_SCROLL_SPEED / this.scrollSpeed;
-    const gapX = (60 + Math.random() * 60) * speedFactor;
     const gapY = (Math.random() - 0.5) * 80 * speedFactor;
     const x = GAME_WIDTH + 50;
     let y = this.lastPlatformY + gapY;
