@@ -65,6 +65,25 @@ export class UIScene extends Phaser.Scene {
       this.muteBtn.setText(this.muted ? 'MUTE' : 'SND');
     });
 
+    // Fullscreen toggle (next to mute)
+    if (document.fullscreenEnabled) {
+      const fsBtn = this.add
+        .text(GAME_WIDTH - 10, 34, '[ ]', {
+          fontFamily: '"Press Start 2P"',
+          fontSize: '5px',
+          color: '#666666',
+        })
+        .setOrigin(1, 0)
+        .setInteractive({ useHandCursor: true });
+      fsBtn.on('pointerdown', () => {
+        if (this.scale.isFullscreen) {
+          this.scale.stopFullscreen();
+        } else {
+          this.scale.startFullscreen();
+        }
+      });
+    }
+
     // Mission display (bottom-left)
     this.missionTexts = [];
     for (let i = 0; i < 3; i++) {

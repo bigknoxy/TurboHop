@@ -49,6 +49,22 @@ export class MenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
+    // Fullscreen button (top-right) — only show if API is available
+    if (document.fullscreenEnabled) {
+      const fsBtn = makeButton(this, GAME_WIDTH - 8, 8, '[ ]', {
+        fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#666666',
+      }, () => {
+        if (this.scale.isFullscreen) {
+          this.scale.stopFullscreen();
+        } else {
+          this.scale.startFullscreen();
+        }
+      }).setOrigin(1, 0);
+      fsBtn.on('pointerdown', (pointer: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+        event.stopPropagation();
+      });
+    }
+
     // Settings button
     makeButton(this, GAME_WIDTH / 4, GAME_HEIGHT - 18, 'SETTINGS', {
       fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#888888',
