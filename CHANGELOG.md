@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.1.4] - 2026-04-05
+
+- ci: trigger branch protection setup on this push (d9420b2)
+
+
 ## [v0.1.3] - 2026-04-05
 
 - ci: add workflow to setup branch protection rules (dec3553)
