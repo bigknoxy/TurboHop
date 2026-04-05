@@ -7,6 +7,7 @@ import { UIScene } from './scenes/UIScene';
 import { GameOverScene } from './scenes/GameOverScene';
 import { ShopScene } from './scenes/ShopScene';
 import { UpgradeScene } from './scenes/UpgradeScene';
+import { SettingsScene } from './scenes/SettingsScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -25,7 +26,8 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, MenuScene, GameScene, UIScene, GameOverScene, ShopScene, UpgradeScene],
+  scene: [BootScene, MenuScene, GameScene, UIScene, GameOverScene, ShopScene, UpgradeScene, SettingsScene],
+  input: { gamepad: true },
   backgroundColor: '#1a1a2e',
 };
 

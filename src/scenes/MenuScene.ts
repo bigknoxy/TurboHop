@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { SaveSystem } from '../systems/SaveSystem';
 import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSystem';
+import { fadeIn, fadeOut } from '../utils/TransitionHelper';
+import { makeButton } from '../utils/ButtonHelper';
 
 export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
@@ -47,18 +49,22 @@ export class MenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    // Upgrades button
-    this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT - 18, 'UPGRADES', {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '7px',
-        color: '#ffaa44',
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        this.scene.start('UpgradeScene');
-      });
+    // Settings button
+    makeButton(this, GAME_WIDTH / 4, GAME_HEIGHT - 18, 'SETTINGS', {
+      fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#888888',
+    }, () => {
+      fadeOut(this, 200, () => this.scene.start('SettingsScene'));
+    });
+
+    // Upgrades button with hover feedback
+    makeButton(this, (GAME_WIDTH * 3) / 4, GAME_HEIGHT - 18, 'UPGRADES', {
+      fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#ffaa44',
+    }, () => {
+      fadeOut(this, 200, () => this.scene.start('UpgradeScene'));
+    });
+
+    // Fade in
+    fadeIn(this, 300);
 
     // Check daily reward
     const saveSystem = new SaveSystem();
@@ -124,7 +130,9 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private startGame() {
-    this.scene.start('GameScene');
-    this.scene.launch('UIScene');
+    fadeOut(this, 200, () => {
+      this.scene.start('GameScene');
+      this.scene.launch('UIScene');
+    });
   }
 }

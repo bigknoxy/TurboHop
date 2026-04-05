@@ -11,12 +11,16 @@ export class UIScene extends Phaser.Scene {
   private muted = false;
   private missionTexts: Phaser.GameObjects.Text[] = [];
   private powerUpText: Phaser.GameObjects.Text | null = null;
+  private displayScore = 0;
+  private scoreTween: Phaser.Tweens.Tween | null = null;
 
   constructor() {
     super({ key: 'UIScene' });
   }
 
   create() {
+    this.displayScore = 0;
+
     // Score
     this.scoreText = this.add.text(8, 4, 'SCORE: 0', {
       fontFamily: '"Press Start 2P"',
@@ -85,7 +89,29 @@ export class UIScene extends Phaser.Scene {
 
     // Listen to events
     EventBus.on('score:update', (data: { score: number; coins: number }) => {
-      this.scoreText.setText(`SCORE: ${data.score}`);
+      // Score roll-up animation
+      const prevScore = this.displayScore;
+      if (data.score !== prevScore) {
+        if (this.scoreTween) this.scoreTween.stop();
+        this.scoreTween = this.tweens.addCounter({
+          from: prevScore,
+          to: data.score,
+          duration: 300,
+          onUpdate: (tween) => {
+            const val = Math.floor(tween.getValue() ?? 0);
+            this.scoreText.setText(`SCORE: ${val}`);
+            this.displayScore = val;
+          },
+        });
+        // Scale punch on significant change
+        if (data.score - prevScore >= 10) {
+          this.tweens.add({
+            targets: this.scoreText,
+            scaleX: 1.2, scaleY: 1.2,
+            duration: 80, yoyo: true, ease: 'Sine.easeOut',
+          });
+        }
+      }
       this.coinText.setText(`${data.coins}`);
     });
 
