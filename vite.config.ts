@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/turbohop/',
+  base: '/TurboHop/',
   build: {
     target: 'ES2020',
     rollupOptions: {
