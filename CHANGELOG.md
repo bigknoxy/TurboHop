@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.3.0] - 2026-04-05
+
+- feat: v3 professional polish, content & accessibility (#3) (48202ad)
+
+
 ## [v0.2.1] - 2026-04-05
 
 - fix: correct README badge, changelog history, and release workflow (37cd26f)
