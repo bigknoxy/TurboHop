@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.1.2] - 2026-04-05
+
+- chore: add branch protection setup script (d713a2f)
+
+
 ## [v0.1.1] - 2026-04-05
 
 - fix: correct GitHub Pages base path to match repo casing (8546959)
