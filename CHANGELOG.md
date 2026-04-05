@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.5.0] - 2026-04-05
+
+- feat: install prompt, HOME button, unit tests & project guide (#5) (8d81663)
+
+
 ## [v0.4.0] - 2026-04-05
 
 - feat: fullscreen mode, PWA support & version display (#4) (0a59f0f)
