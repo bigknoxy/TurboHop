@@ -8,6 +8,7 @@ import { GameOverScene } from './scenes/GameOverScene';
 import { ShopScene } from './scenes/ShopScene';
 import { UpgradeScene } from './scenes/UpgradeScene';
 import { SettingsScene } from './scenes/SettingsScene';
+import './systems/InstallManager'; // Initialize early to capture beforeinstallprompt
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,

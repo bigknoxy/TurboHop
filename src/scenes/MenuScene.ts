@@ -4,13 +4,16 @@ import { version } from '../../package.json';
 import { SaveSystem } from '../systems/SaveSystem';
 import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSystem';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
-import { makeButton, addFullscreenButton } from '../utils/ButtonHelper';
+import { makeButton } from '../utils/ButtonHelper';
+import { InstallManager } from '../systems/InstallManager';
 
 export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
   private promptText!: Phaser.GameObjects.Text;
   private blinkTimer = 0;
   private canStart = true;
+  private bannerElements: Phaser.GameObjects.GameObject[] = [];
+  private bannerDelay: Phaser.Time.TimerEvent | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -18,6 +21,7 @@ export class MenuScene extends Phaser.Scene {
 
   create() {
     this.canStart = true;
+    this.bannerElements = [];
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'bg-sky');
 
     this.titleText = this.add
@@ -50,9 +54,6 @@ export class MenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    // Fullscreen button (top-right)
-    addFullscreenButton(this, GAME_WIDTH - 8, 8);
-
     // Settings button
     makeButton(this, GAME_WIDTH / 4, GAME_HEIGHT - 18, 'SETTINGS', {
       fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#888888',
@@ -60,7 +61,7 @@ export class MenuScene extends Phaser.Scene {
       fadeOut(this, 200, () => this.scene.start('SettingsScene'));
     });
 
-    // Upgrades button with hover feedback
+    // Upgrades button
     makeButton(this, (GAME_WIDTH * 3) / 4, GAME_HEIGHT - 18, 'UPGRADES', {
       fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#ffaa44',
     }, () => {
@@ -85,10 +86,12 @@ export class MenuScene extends Phaser.Scene {
     if (result.claimed) {
       this.canStart = false;
       this.showDailyReward(result, dailySystem);
+    } else if (InstallManager.shouldShowBanner()) {
+      // Show install banner (after daily reward check, so they don't overlap)
+      this.bannerDelay = this.time.delayedCall(500, () => this.showInstallBanner());
     }
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      // Don't start if a button was tapped (check if pointer hit any interactive object)
       const hitObjects = this.input.hitTestPointer(pointer);
       if (hitObjects.length > 0) return;
       if (this.canStart) this.startGame();
@@ -103,6 +106,51 @@ export class MenuScene extends Phaser.Scene {
   update(_time: number, delta: number) {
     this.blinkTimer += delta;
     this.promptText.setAlpha(Math.sin(this.blinkTimer * 0.005) > 0 ? 1 : 0.3);
+  }
+
+  private showInstallBanner(): void {
+    this.canStart = false;
+
+    // Dark panel
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 260, 70, 0x000000, 0.9);
+    panel.setStrokeStyle(1, 0x44ff44, 0.6);
+    panel.setDepth(800);
+
+    const title = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 20, 'INSTALL TURBOHOP', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '8px',
+      color: '#44ff44',
+    }).setOrigin(0.5).setDepth(801);
+
+    const subtitle = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 6, 'Play fullscreen, no browser!', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '5px',
+      color: '#aaaaaa',
+    }).setOrigin(0.5).setDepth(801);
+
+    const installBtn = makeButton(this, GAME_WIDTH / 2 - 40, GAME_HEIGHT / 2 + 16, 'INSTALL', {
+      fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#44ff44',
+    }, () => {
+      InstallManager.promptInstall().catch(() => {});
+      this.dismissBanner();
+    });
+    installBtn.setDepth(801);
+
+    const dismissBtn = makeButton(this, GAME_WIDTH / 2 + 45, GAME_HEIGHT / 2 + 16, 'NOT NOW', {
+      fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#666666',
+    }, () => {
+      InstallManager.dismiss();
+      this.dismissBanner();
+    });
+    dismissBtn.setDepth(801);
+
+    this.bannerElements = [panel, title, subtitle, installBtn, dismissBtn];
+  }
+
+  private dismissBanner(): void {
+    this.bannerElements.forEach(el => el.destroy());
+    this.bannerElements = [];
+    this.canStart = true;
   }
 
   private showDailyReward(result: DailyRewardResult, dailySystem: DailyRewardSystem): void {
@@ -138,12 +186,12 @@ export class MenuScene extends Phaser.Scene {
       panel.destroy();
       claimBtn.destroy();
       this.canStart = true;
-      // Destroy all daily reward text (refresh scene simply)
       this.scene.restart();
     });
   }
 
   private startGame() {
+    if (this.bannerDelay) this.bannerDelay.destroy();
     fadeOut(this, 200, () => {
       this.scene.start('GameScene');
       this.scene.launch('UIScene');
