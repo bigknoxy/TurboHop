@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../constants';
 import { EventBus } from '../utils/EventBus';
+import { Mission } from '../systems/MissionSystem';
 
 export class UIScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
@@ -8,6 +9,8 @@ export class UIScene extends Phaser.Scene {
   private hearts: Phaser.GameObjects.Image[] = [];
   private muteBtn!: Phaser.GameObjects.Text;
   private muted = false;
+  private missionTexts: Phaser.GameObjects.Text[] = [];
+  private powerUpText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'UIScene' });
@@ -33,10 +36,11 @@ export class UIScene extends Phaser.Scene {
       strokeThickness: 2,
     });
 
-    // Hearts (HP)
+    // Hearts (HP) — support up to 6 from upgrades
     this.hearts = [];
-    for (let i = 0; i < 3; i++) {
-      const heart = this.add.image(GAME_WIDTH - 20 - i * 16, 10, 'heart').setScale(0.7);
+    for (let i = 0; i < 6; i++) {
+      const heart = this.add.image(GAME_WIDTH - 20 - i * 14, 10, 'heart').setScale(0.6);
+      heart.setVisible(false);
       this.hearts.push(heart);
     }
 
@@ -57,6 +61,28 @@ export class UIScene extends Phaser.Scene {
       this.muteBtn.setText(this.muted ? 'MUTE' : 'SND');
     });
 
+    // Mission display (bottom-left)
+    this.missionTexts = [];
+    for (let i = 0; i < 3; i++) {
+      const mt = this.add.text(8, 190 - i * 9, '', {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '4px',
+        color: '#aaaaaa',
+        stroke: '#000000',
+        strokeThickness: 1,
+      });
+      this.missionTexts.push(mt);
+    }
+
+    // Power-up timer display (top center)
+    this.powerUpText = this.add.text(GAME_WIDTH / 2, 4, '', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '6px',
+      color: '#44ffff',
+      stroke: '#000000',
+      strokeThickness: 2,
+    }).setOrigin(0.5, 0);
+
     // Listen to events
     EventBus.on('score:update', (data: { score: number; coins: number }) => {
       this.scoreText.setText(`SCORE: ${data.score}`);
@@ -65,8 +91,34 @@ export class UIScene extends Phaser.Scene {
 
     EventBus.on('player:hp', (data: { hp: number; maxHp: number }) => {
       this.hearts.forEach((heart, i) => {
-        heart.setAlpha(i < data.hp ? 1 : 0.2);
+        if (i < data.maxHp) {
+          heart.setVisible(true);
+          heart.setAlpha(i < data.hp ? 1 : 0.2);
+        } else {
+          heart.setVisible(false);
+        }
       });
+    });
+
+    EventBus.on('missions:update', (missions: Mission[]) => {
+      missions.forEach((m, i) => {
+        if (this.missionTexts[i]) {
+          const status = m.completed ? '[OK]' : `${m.progress}/${m.target}`;
+          const color = m.completed ? '#44ff44' : '#aaaaaa';
+          this.missionTexts[i].setText(`${m.description} ${status}`);
+          this.missionTexts[i].setColor(color);
+        }
+      });
+    });
+
+    EventBus.on('powerup:active', (data: { name: string; timeLeft: number }) => {
+      if (this.powerUpText) {
+        if (data.timeLeft > 0) {
+          this.powerUpText.setText(`${data.name} ${Math.ceil(data.timeLeft / 1000)}s`);
+        } else {
+          this.powerUpText.setText('');
+        }
+      }
     });
   }
 }

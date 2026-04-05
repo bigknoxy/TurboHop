@@ -14,8 +14,9 @@ export class Player extends Entity {
   private hp = 3;
   private maxHp = 3;
   private dead = false;
+  private wasAirborne = false;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, upgrades?: { extraHp?: number; jumpBoost?: number }) {
     super();
     this.scene = scene;
 
@@ -58,6 +59,15 @@ export class Player extends Entity {
 
     this.jumpComp = this.addComponent('jump', new JumpComponent(this.body));
 
+    // Apply upgrades if provided
+    if (upgrades?.extraHp) {
+      this.hp = upgrades.extraHp;
+      this.maxHp = upgrades.extraHp;
+    }
+    if (upgrades?.jumpBoost) {
+      this.jumpComp.setDoubleJumpBoost(upgrades.jumpBoost);
+    }
+
     // Input
     scene.input.on('pointerdown', () => this.onInputDown());
     scene.input.on('pointerup', () => this.onInputUp());
@@ -78,6 +88,15 @@ export class Player extends Entity {
     this.isDown = true;
     if (this.jumpComp.tryJump()) {
       EventBus.emit('player:jump');
+      // Stretch on jump
+      this.scene.tweens.add({
+        targets: this.sprite,
+        scaleX: 0.8,
+        scaleY: 1.3,
+        duration: 80,
+        yoyo: true,
+        ease: 'Sine.easeOut',
+      });
     }
   }
 
@@ -94,6 +113,22 @@ export class Player extends Entity {
 
     if (this.hp <= 0) {
       this.dead = true;
+      // Death tumble animation
+      this.scene.tweens.add({
+        targets: this.sprite,
+        angle: 720,
+        y: this.sprite.y - 40,
+        duration: 400,
+        ease: 'Quad.easeOut',
+        onComplete: () => {
+          this.scene.tweens.add({
+            targets: this.sprite,
+            y: GAME_HEIGHT + 60,
+            duration: 500,
+            ease: 'Quad.easeIn',
+          });
+        },
+      });
       EventBus.emit('player:dead');
       return;
     }
@@ -123,6 +158,22 @@ export class Player extends Entity {
     if (this.isDown) {
       this.jumpComp.holdJump(delta);
     }
+
+    // Landing detection — squash + dust
+    const onGround = this.body.blocked.down || this.body.touching.down;
+    if (onGround && this.wasAirborne) {
+      // Squash on land
+      this.scene.tweens.add({
+        targets: this.sprite,
+        scaleX: 1.3,
+        scaleY: 0.7,
+        duration: 60,
+        yoyo: true,
+        ease: 'Sine.easeOut',
+      });
+      EventBus.emit('player:land', { x: this.sprite.x, y: this.sprite.y + 12 });
+    }
+    this.wasAirborne = !onGround;
 
     // Invincibility timer + blink
     if (this.invincible) {

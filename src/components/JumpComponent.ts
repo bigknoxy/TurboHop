@@ -17,6 +17,10 @@ export class JumpComponent implements IComponent {
     this.body = body;
   }
 
+  setDoubleJumpBoost(percent: number): void {
+    this.doubleJumpVelocity = this.doubleJumpVelocity * (1 + percent / 100);
+  }
+
   resetJumps(): void {
     this.jumpCount = 0;
     this.isHolding = false;

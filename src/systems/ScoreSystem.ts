@@ -5,17 +5,23 @@ import { SaveSystem } from './SaveSystem';
 export class ScoreSystem implements ISystem {
   private score = 0;
   private coins = 0;
+  private stomps = 0;
   private elapsed = 0;
   private saveSystem: SaveSystem;
 
-  private onCoinCollect = () => {
-    this.coins++;
+  private onCoinCollect = (data?: { value?: number }) => {
+    this.coins += data?.value ?? 1;
     this.emitUpdate();
+  };
+
+  private onStomp = () => {
+    this.stomps++;
   };
 
   constructor(saveSystem: SaveSystem) {
     this.saveSystem = saveSystem;
     EventBus.on('coin:collect', this.onCoinCollect);
+    EventBus.on('enemy:stomp', this.onStomp);
   }
 
   get currentScore(): number {
@@ -24,6 +30,10 @@ export class ScoreSystem implements ISystem {
 
   get currentCoins(): number {
     return this.coins;
+  }
+
+  get currentStomps(): number {
+    return this.stomps;
   }
 
   update(delta: number): void {
@@ -35,10 +45,10 @@ export class ScoreSystem implements ISystem {
     }
   }
 
-  finalize(): { score: number; coins: number; highScore: number } {
+  finalize(): { score: number; coins: number; highScore: number; stomps: number } {
     const highScore = this.saveSystem.saveHighScore(this.score);
     this.saveSystem.addCoins(this.coins);
-    return { score: this.score, coins: this.coins, highScore };
+    return { score: this.score, coins: this.coins, highScore, stomps: this.stomps };
   }
 
   private emitUpdate(): void {
@@ -47,5 +57,6 @@ export class ScoreSystem implements ISystem {
 
   destroy(): void {
     EventBus.off('coin:collect', this.onCoinCollect);
+    EventBus.off('enemy:stomp', this.onStomp);
   }
 }
