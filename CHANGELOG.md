@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.1.3] - 2026-04-05
+
+- ci: add workflow to setup branch protection rules (dec3553)
+
+
 ## [v0.1.2] - 2026-04-05
 
 - chore: add branch protection setup script (d713a2f)
