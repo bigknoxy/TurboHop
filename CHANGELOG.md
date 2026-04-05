@@ -1,5 +1,10 @@
 # Changelog
 
+
+## [v0.2.1] - 2026-04-05
+
+- fix: correct README badge, changelog history, and release workflow (37cd26f)
+
 ## [v0.2.0] - 2026-04-05
 
 - feat: add 8 major engagement features for v2 (cfd631e)
