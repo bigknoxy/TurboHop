@@ -1,0 +1,136 @@
+name: Auto Version & Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  version-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          # Get the latest tag, default to v0.0.0 if none exists
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+          # Parse current version
+          VERSION=${LATEST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          # Analyze commits since last tag for conventional commit prefixes
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
+
+          if echo "$COMMITS" | grep -qiE "^(BREAKING CHANGE|feat!|fix!|refactor!)"; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qiE "^feat"; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            BUMP="minor"
+          elif echo "$COMMITS" | grep -qiE "^(fix|perf|refactor)"; then
+            PATCH=$((PATCH + 1))
+            BUMP="patch"
+          else
+            PATCH=$((PATCH + 1))
+            BUMP="patch"
+          fi
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
+          echo "Version bump: $LATEST_TAG -> $NEW_VERSION ($BUMP)"
+
+      - name: Update package.json version
+        run: |
+          VERSION=${{ steps.bump.outputs.new_version }}
+          VERSION_NUM=${VERSION#v}
+          bun -e "
+            const pkg = JSON.parse(require('fs').readFileSync('package.json','utf8'));
+            pkg.version = '${VERSION_NUM}';
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LATEST_TAG=${{ steps.bump.outputs.latest_tag }}
+          NEW_VERSION=${{ steps.bump.outputs.new_version }}
+          DATE=$(date +%Y-%m-%d)
+
+          # Generate release notes from commits
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
+          else
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
+          fi
+
+          # Build the new changelog entry
+          ENTRY="## [${NEW_VERSION}] - ${DATE}
+
+          ${COMMITS}
+          "
+
+          # Write release notes for GitHub Release
+          echo "$ENTRY" > /tmp/release_notes.md
+
+          # Prepend to CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            # Insert after the header
+            {
+              head -2 CHANGELOG.md
+              echo ""
+              echo "$ENTRY"
+              tail -n +3 CHANGELOG.md
+            } > CHANGELOG.tmp
+            mv CHANGELOG.tmp CHANGELOG.md
+          else
+            {
+              echo "# Changelog"
+              echo ""
+              echo "$ENTRY"
+            } > CHANGELOG.md
+          fi
+
+      - name: Update README version badge
+        run: |
+          VERSION=${{ steps.bump.outputs.new_version }}
+          if [ -f README.md ]; then
+            sed -i "s/version-v[0-9]*\.[0-9]*\.[0-9]*/version-${VERSION}/" README.md
+          fi
+
+      - name: Commit version bump
+        run: |
+          VERSION=${{ steps.bump.outputs.new_version }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json CHANGELOG.md README.md
+          git diff --cached --quiet || git commit -m "chore: release ${VERSION} [skip ci]"
+          git push
+
+      - name: Create tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ steps.bump.outputs.new_version }}
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --notes-file /tmp/release_notes.md
