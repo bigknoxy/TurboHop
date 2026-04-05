@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
+import { version } from '../../package.json';
 import { SaveSystem } from '../systems/SaveSystem';
 import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSystem';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
@@ -65,6 +66,13 @@ export class MenuScene extends Phaser.Scene {
     }, () => {
       fadeOut(this, 200, () => this.scene.start('UpgradeScene'));
     });
+
+    // Version
+    this.add.text(GAME_WIDTH - 4, GAME_HEIGHT - 4, `v${version}`, {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '4px',
+      color: '#444444',
+    }).setOrigin(1, 1);
 
     // Fade in
     fadeIn(this, 300);
