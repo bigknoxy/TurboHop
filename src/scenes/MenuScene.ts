@@ -1,20 +1,24 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
+import { SaveSystem } from '../systems/SaveSystem';
+import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSystem';
 
 export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
   private promptText!: Phaser.GameObjects.Text;
   private blinkTimer = 0;
+  private canStart = true;
 
   constructor() {
     super({ key: 'MenuScene' });
   }
 
   create() {
+    this.canStart = true;
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'bg-sky');
 
     this.titleText = this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 3, 'TURBOHOP', {
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 3 - 10, 'TURBOHOP', {
         fontFamily: '"Press Start 2P"',
         fontSize: '24px',
         color: '#ffdd00',
@@ -35,7 +39,7 @@ export class MenuScene extends Phaser.Scene {
     const highScore = parseInt(localStorage.getItem('turbohop_highscore') || '0', 10);
     if (highScore > 0) {
       this.add
-        .text(GAME_WIDTH / 2, GAME_HEIGHT - 30, `HI: ${highScore}`, {
+        .text(GAME_WIDTH / 2, GAME_HEIGHT - 40, `HI: ${highScore}`, {
           fontFamily: '"Press Start 2P"',
           fontSize: '8px',
           color: '#aaaaaa',
@@ -43,8 +47,35 @@ export class MenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    this.input.once('pointerdown', () => this.startGame());
-    this.input.keyboard?.once('keydown-SPACE', () => this.startGame());
+    // Upgrades button
+    this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT - 18, 'UPGRADES', {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '7px',
+        color: '#ffaa44',
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.scene.start('UpgradeScene');
+      });
+
+    // Check daily reward
+    const saveSystem = new SaveSystem();
+    const dailySystem = new DailyRewardSystem(saveSystem);
+    const result = dailySystem.check();
+
+    if (result.claimed) {
+      this.canStart = false;
+      this.showDailyReward(result, dailySystem);
+    }
+
+    this.input.on('pointerdown', () => {
+      if (this.canStart) this.startGame();
+    });
+    this.input.keyboard?.on('keydown-SPACE', () => {
+      if (this.canStart) this.startGame();
+    });
 
     this.blinkTimer = 0;
   }
@@ -52,6 +83,44 @@ export class MenuScene extends Phaser.Scene {
   update(_time: number, delta: number) {
     this.blinkTimer += delta;
     this.promptText.setAlpha(Math.sin(this.blinkTimer * 0.005) > 0 ? 1 : 0.3);
+  }
+
+  private showDailyReward(result: DailyRewardResult, dailySystem: DailyRewardSystem): void {
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 200, 100, 0x000000, 0.85);
+    panel.setStrokeStyle(2, 0xffdd00);
+
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 30, 'DAILY REWARD!', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '8px',
+      color: '#ffdd00',
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10, `DAY ${result.streak}/${result.maxStreak}`, {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '7px',
+      color: '#ffffff',
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 8, `+${result.reward} COINS`, {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '10px',
+      color: '#ffdd00',
+    }).setOrigin(0.5);
+
+    const claimBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 32, 'CLAIM', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '8px',
+      color: '#44ff44',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    claimBtn.on('pointerdown', () => {
+      dailySystem.claim(result);
+      panel.destroy();
+      claimBtn.destroy();
+      this.canStart = true;
+      // Destroy all daily reward text (refresh scene simply)
+      this.scene.restart();
+    });
   }
 
   private startGame() {

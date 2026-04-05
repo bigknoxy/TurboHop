@@ -94,6 +94,12 @@ export class BootScene extends Phaser.Scene {
     this.generateBackground('bg-mountains', -1, -1, -1, true);
     this.generateBackground('bg-hills', -1, -1, -1, false, true);
 
+    // Power-up icons (12x12 each)
+    this.generatePowerUpTexture('powerup-magnet', 0x44ffff, 'M');
+    this.generatePowerUpTexture('powerup-shield', 0x44ff44, 'S');
+    this.generatePowerUpTexture('powerup-double', 0xffdd00, '2');
+    this.generatePowerUpTexture('powerup-boost', 0xff4444, 'B');
+
     // Heart icon for HP
     const heart = this.make.graphics({ x: 0, y: 0 }, false);
     heart.fillStyle(0xff4444);
@@ -159,6 +165,19 @@ export class BootScene extends Phaser.Scene {
     }
 
     gfx.generateTexture(key, GAME_WIDTH, GAME_HEIGHT);
+    gfx.destroy();
+  }
+
+  private generatePowerUpTexture(key: string, color: number, _letter: string): void {
+    const gfx = this.make.graphics({ x: 0, y: 0 }, false);
+    // Glowing box
+    gfx.fillStyle(color, 0.3);
+    gfx.fillRect(0, 0, 14, 14);
+    gfx.fillStyle(color);
+    gfx.fillRect(1, 1, 12, 12);
+    gfx.fillStyle(0xffffff, 0.6);
+    gfx.fillRect(2, 2, 4, 2);
+    gfx.generateTexture(key, 14, 14);
     gfx.destroy();
   }
 

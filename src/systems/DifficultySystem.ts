@@ -17,6 +17,10 @@ export class DifficultySystem implements ISystem {
     return this.level;
   }
 
+  setInitialDelay(delayMs: number): void {
+    this.elapsed = -delayMs;
+  }
+
   update(delta: number): void {
     this.elapsed += delta;
     const newLevel = Math.floor(this.elapsed / this.rampInterval);
