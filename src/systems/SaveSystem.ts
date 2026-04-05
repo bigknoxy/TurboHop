@@ -9,7 +9,7 @@ const KEYS = {
 
 export class SaveSystem implements ISystem {
   getHighScore(): number {
-    return parseInt(localStorage.getItem(KEYS.HIGH_SCORE) || '0');
+    return parseInt(localStorage.getItem(KEYS.HIGH_SCORE) || '0', 10);
   }
 
   saveHighScore(score: number): number {
@@ -20,7 +20,7 @@ export class SaveSystem implements ISystem {
   }
 
   getCoins(): number {
-    return parseInt(localStorage.getItem(KEYS.COINS) || '0');
+    return parseInt(localStorage.getItem(KEYS.COINS) || '0', 10);
   }
 
   addCoins(amount: number): void {

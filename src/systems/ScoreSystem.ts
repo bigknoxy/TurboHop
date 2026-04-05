@@ -8,13 +8,14 @@ export class ScoreSystem implements ISystem {
   private elapsed = 0;
   private saveSystem: SaveSystem;
 
+  private onCoinCollect = () => {
+    this.coins++;
+    this.emitUpdate();
+  };
+
   constructor(saveSystem: SaveSystem) {
     this.saveSystem = saveSystem;
-
-    EventBus.on('coin:collect', () => {
-      this.coins++;
-      this.emitUpdate();
-    });
+    EventBus.on('coin:collect', this.onCoinCollect);
   }
 
   get currentScore(): number {
@@ -27,7 +28,6 @@ export class ScoreSystem implements ISystem {
 
   update(delta: number): void {
     this.elapsed += delta;
-    // Score increases with time (1 point per ~50ms)
     const newScore = Math.floor(this.elapsed / 50);
     if (newScore !== this.score) {
       this.score = newScore;
@@ -46,6 +46,6 @@ export class ScoreSystem implements ISystem {
   }
 
   destroy(): void {
-    EventBus.off('coin:collect');
+    EventBus.off('coin:collect', this.onCoinCollect);
   }
 }

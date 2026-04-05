@@ -11,7 +11,11 @@ export abstract class Entity implements IEntity {
   }
 
   getComponent<T extends IComponent>(key: string): T {
-    return this.components.get(key) as T;
+    const component = this.components.get(key);
+    if (!component) {
+      throw new Error(`Component "${key}" not found on entity`);
+    }
+    return component as T;
   }
 
   update(delta: number): void {

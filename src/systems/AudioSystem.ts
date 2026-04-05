@@ -1,25 +1,38 @@
 import { ISystem } from '../interfaces/ISystem';
 import { EventBus } from '../utils/EventBus';
 
-export class AudioSystem implements ISystem {
-  private scene: Phaser.Scene;
-  private muted = false;
-  private audioContext: AudioContext | null = null;
+let sharedAudioContext: AudioContext | null = null;
 
-  constructor(scene: Phaser.Scene) {
-    this.scene = scene;
-
+function getAudioContext(): AudioContext | null {
+  if (!sharedAudioContext) {
     try {
-      this.audioContext = new AudioContext();
+      sharedAudioContext = new AudioContext();
     } catch {
-      this.audioContext = null;
+      sharedAudioContext = null;
     }
+  }
+  return sharedAudioContext;
+}
 
-    EventBus.on('player:jump', () => this.playJump());
-    EventBus.on('coin:collect', () => this.playCoin());
-    EventBus.on('player:hit', () => this.playHit());
-    EventBus.on('player:dead', () => this.playDeath());
-    EventBus.on('enemy:stomp', () => this.playStomp());
+export class AudioSystem implements ISystem {
+  private muted = false;
+  private audioContext: AudioContext | null;
+  private pendingTimeouts: number[] = [];
+
+  private onJump = () => this.playJump();
+  private onCoin = () => this.playCoin();
+  private onHit = () => this.playHit();
+  private onDead = () => this.playDeath();
+  private onStomp = () => this.playStomp();
+
+  constructor(_scene: Phaser.Scene) {
+    this.audioContext = getAudioContext();
+
+    EventBus.on('player:jump', this.onJump);
+    EventBus.on('coin:collect', this.onCoin);
+    EventBus.on('player:hit', this.onHit);
+    EventBus.on('player:dead', this.onDead);
+    EventBus.on('enemy:stomp', this.onStomp);
   }
 
   toggleMute(): boolean {
@@ -35,6 +48,9 @@ export class AudioSystem implements ISystem {
     if (this.muted || !this.audioContext) return;
 
     try {
+      if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume();
+      }
       const osc = this.audioContext.createOscillator();
       const gain = this.audioContext.createGain();
       osc.type = type;
@@ -50,14 +66,23 @@ export class AudioSystem implements ISystem {
     }
   }
 
+  private delayedTone(delay: number, freq: number, duration: number, type: OscillatorType = 'square', volume = 0.15) {
+    const id = window.setTimeout(() => {
+      this.playTone(freq, duration, type, volume);
+      const idx = this.pendingTimeouts.indexOf(id);
+      if (idx !== -1) this.pendingTimeouts.splice(idx, 1);
+    }, delay);
+    this.pendingTimeouts.push(id);
+  }
+
   private playJump() {
     this.playTone(440, 0.1, 'square', 0.1);
-    setTimeout(() => this.playTone(580, 0.08, 'square', 0.08), 50);
+    this.delayedTone(50, 580, 0.08, 'square', 0.08);
   }
 
   private playCoin() {
     this.playTone(880, 0.08, 'square', 0.1);
-    setTimeout(() => this.playTone(1200, 0.12, 'square', 0.08), 60);
+    this.delayedTone(60, 1200, 0.12, 'square', 0.08);
   }
 
   private playHit() {
@@ -66,22 +91,27 @@ export class AudioSystem implements ISystem {
 
   private playDeath() {
     this.playTone(400, 0.15, 'square', 0.12);
-    setTimeout(() => this.playTone(300, 0.15, 'square', 0.1), 150);
-    setTimeout(() => this.playTone(200, 0.3, 'square', 0.08), 300);
+    this.delayedTone(150, 300, 0.15, 'square', 0.1);
+    this.delayedTone(300, 200, 0.3, 'square', 0.08);
   }
 
   private playStomp() {
     this.playTone(300, 0.05, 'square', 0.1);
-    setTimeout(() => this.playTone(600, 0.1, 'square', 0.08), 40);
+    this.delayedTone(40, 600, 0.1, 'square', 0.08);
   }
 
   update(_delta: number): void {}
 
   destroy(): void {
-    EventBus.off('player:jump');
-    EventBus.off('coin:collect');
-    EventBus.off('player:hit');
-    EventBus.off('player:dead');
-    EventBus.off('enemy:stomp');
+    // Clear pending timeouts
+    this.pendingTimeouts.forEach((id) => window.clearTimeout(id));
+    this.pendingTimeouts = [];
+
+    // Remove only our listeners
+    EventBus.off('player:jump', this.onJump);
+    EventBus.off('coin:collect', this.onCoin);
+    EventBus.off('player:hit', this.onHit);
+    EventBus.off('player:dead', this.onDead);
+    EventBus.off('enemy:stomp', this.onStomp);
   }
 }

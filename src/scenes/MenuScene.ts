@@ -32,7 +32,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     // High score display
-    const highScore = parseInt(localStorage.getItem('turbohop_highscore') || '0');
+    const highScore = parseInt(localStorage.getItem('turbohop_highscore') || '0', 10);
     if (highScore > 0) {
       this.add
         .text(GAME_WIDTH / 2, GAME_HEIGHT - 30, `HI: ${highScore}`, {

@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
-import { EventBus } from '../utils/EventBus';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -82,15 +81,9 @@ export class GameOverScene extends Phaser.Scene {
 
     // Keyboard retry
     this.input.keyboard?.once('keydown-SPACE', () => this.retry());
-
-    // Also allow tap anywhere after a short delay
-    this.time.delayedCall(500, () => {
-      this.input.once('pointerdown', () => this.retry());
-    });
   }
 
   private retry() {
-    EventBus.removeAllListeners();
     this.scene.start('GameScene');
     this.scene.launch('UIScene');
   }

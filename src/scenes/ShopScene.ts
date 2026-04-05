@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
-import { EventBus } from '../utils/EventBus';
 
 interface SkinData {
   name: string;
@@ -34,7 +33,7 @@ export class ShopScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const totalCoins = parseInt(localStorage.getItem('turbohop_coins') || '0');
+    const totalCoins = parseInt(localStorage.getItem('turbohop_coins') || '0', 10);
     const ownedSkins: string[] = JSON.parse(localStorage.getItem('turbohop_skins') || '["BLUE"]');
     const equippedSkin = localStorage.getItem('turbohop_skin') || 'BLUE';
 
@@ -94,7 +93,7 @@ export class ShopScene extends Phaser.Scene {
           return;
         }
 
-        const currentCoins = parseInt(localStorage.getItem('turbohop_coins') || '0');
+        const currentCoins = parseInt(localStorage.getItem('turbohop_coins') || '0', 10);
         if (currentCoins >= skin.cost) {
           localStorage.setItem('turbohop_coins', String(currentCoins - skin.cost));
           const updated = JSON.parse(localStorage.getItem('turbohop_skins') || '["BLUE"]');
@@ -117,7 +116,6 @@ export class ShopScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     backBtn.on('pointerdown', () => {
-      EventBus.removeAllListeners();
       this.scene.start('MenuScene');
     });
   }

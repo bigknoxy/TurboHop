@@ -106,11 +106,14 @@ export class GameScene extends Phaser.Scene {
     }
     this.scanlineGfx.strokePath();
 
+    // Clean up systems when scene shuts down
+    this.events.on('shutdown', () => this.shutdown());
+
     // Set initial scroll speed
     this.spawnSystem.setScrollSpeed(this.difficultySystem.speed);
   }
 
-  update(_time: number, delta: number) {
+  update(time: number, delta: number) {
     if (this.gameOver) return;
 
     this.player.update(delta);
@@ -125,13 +128,21 @@ export class GameScene extends Phaser.Scene {
     this.bgLayers[1].tilePositionX += speed * 0.2 * dt;
     this.bgLayers[2].tilePositionX += speed * 0.4 * dt;
 
-    // Coin spin animation
+    // Coin spin animation (using Phaser time, not Date.now())
     this.coinGroup.getChildren().forEach((child) => {
       const sprite = child as Phaser.GameObjects.Sprite;
       if (sprite.active) {
-        sprite.setScale(0.8 + Math.sin(Date.now() * 0.008 + sprite.x) * 0.2, 1);
+        sprite.setScale(0.8 + Math.sin(time * 0.008 + sprite.x) * 0.2, 1);
       }
     });
+  }
+
+  shutdown() {
+    this.scoreSystem.destroy();
+    this.audioSystem.destroy();
+    this.spawnSystem.destroy();
+    this.difficultySystem.destroy();
+    this.player.destroy();
   }
 
   private handleEnemyCollision(
