@@ -23,20 +23,20 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100dvh;
-      min-height: 100vh; /* fallback for older browsers */
+      min-height: 100vh;
+      min-height: 100dvh; /* overrides on modern browsers */
       overflow: hidden;
       touch-action: none;
-      /* Safe area insets for notched devices */
+    }
+    #game {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      /* Safe area: pad the game container so Phaser centers within safe bounds */
       padding:
         env(safe-area-inset-top)
         env(safe-area-inset-right)
         env(safe-area-inset-bottom)
         env(safe-area-inset-left);
-    }
-    #game {
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
     }
   </style>
 </head>

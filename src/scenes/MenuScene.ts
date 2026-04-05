@@ -3,7 +3,7 @@ import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { SaveSystem } from '../systems/SaveSystem';
 import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSystem';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
-import { makeButton } from '../utils/ButtonHelper';
+import { makeButton, addFullscreenButton } from '../utils/ButtonHelper';
 
 export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
@@ -49,21 +49,8 @@ export class MenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    // Fullscreen button (top-right) — only show if API is available
-    if (document.fullscreenEnabled) {
-      const fsBtn = makeButton(this, GAME_WIDTH - 8, 8, '[ ]', {
-        fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#666666',
-      }, () => {
-        if (this.scale.isFullscreen) {
-          this.scale.stopFullscreen();
-        } else {
-          this.scale.startFullscreen();
-        }
-      }).setOrigin(1, 0);
-      fsBtn.on('pointerdown', (pointer: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
-        event.stopPropagation();
-      });
-    }
+    // Fullscreen button (top-right)
+    addFullscreenButton(this, GAME_WIDTH - 8, 8);
 
     // Settings button
     makeButton(this, GAME_WIDTH / 4, GAME_HEIGHT - 18, 'SETTINGS', {
@@ -92,7 +79,10 @@ export class MenuScene extends Phaser.Scene {
       this.showDailyReward(result, dailySystem);
     }
 
-    this.input.on('pointerdown', () => {
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      // Don't start if a button was tapped (check if pointer hit any interactive object)
+      const hitObjects = this.input.hitTestPointer(pointer);
+      if (hitObjects.length > 0) return;
       if (this.canStart) this.startGame();
     });
     this.input.keyboard?.on('keydown-SPACE', () => {

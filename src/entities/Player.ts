@@ -87,6 +87,8 @@ export class Player extends Entity {
 
   private onInputDown() {
     if (this.dead) return;
+    // Ignore if a UI button (e.g. fullscreen) consumed this tap
+    if (this.scene.game.registry.get('__fsButtonPressed')) return;
     this.isDown = true;
     if (this.jumpComp.tryJump()) {
       this.emitJump();
