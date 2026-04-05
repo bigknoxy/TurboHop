@@ -27,6 +27,7 @@ export class GameScene extends Phaser.Scene {
   private powerUpSystem!: PowerUpSystem;
   private powerUpGroup!: Phaser.Physics.Arcade.Group;
   private powerUpTimer = 0;
+  private nextPowerUpAt = 20000 + Math.random() * 10000;
   private shieldSprite: Phaser.GameObjects.Arc | null = null;
   private passiveMagnetRange = 0;
   private bgLayers: Phaser.GameObjects.TileSprite[] = [];
@@ -124,6 +125,8 @@ export class GameScene extends Phaser.Scene {
     EventBus.on('difficulty:change', (data: { speed: number; level: number }) => {
       this.spawnSystem.setScrollSpeed(data.speed);
       this.spawnSystem.setDifficulty(data.level);
+      // Update active power-up velocities to match new speed
+      this.powerUpGroup.setVelocityX(-data.speed);
     });
 
     // Player death
@@ -222,8 +225,9 @@ export class GameScene extends Phaser.Scene {
 
     // Power-up spawning
     this.powerUpTimer += delta;
-    if (this.powerUpTimer >= 20000 + Math.random() * 10000) {
+    if (this.powerUpTimer >= this.nextPowerUpAt) {
       this.powerUpTimer = 0;
+      this.nextPowerUpAt = 20000 + Math.random() * 10000;
       this.spawnPowerUp();
     }
 
@@ -392,8 +396,8 @@ export class GameScene extends Phaser.Scene {
     (coin.body as Phaser.Physics.Arcade.Body).stop();
 
     const isDouble = this.powerUpSystem.isActive('double_coins');
-    EventBus.emit('coin:collect');
-    if (isDouble) EventBus.emit('coin:collect'); // Second coin event for double
+    const coinValue = isDouble ? 2 : 1;
+    EventBus.emit('coin:collect', { value: coinValue });
 
     // Sparkle effect
     this.createParticles(coin.x, coin.y, 0xffdd00, 6);

@@ -9,8 +9,8 @@ export class ScoreSystem implements ISystem {
   private elapsed = 0;
   private saveSystem: SaveSystem;
 
-  private onCoinCollect = () => {
-    this.coins++;
+  private onCoinCollect = (data?: { value?: number }) => {
+    this.coins += data?.value ?? 1;
     this.emitUpdate();
   };
 
