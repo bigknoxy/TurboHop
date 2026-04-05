@@ -41,5 +41,15 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - **Squash merges drop later commits.** When a PR is squash-merged, only commits that existed at merge time are included. Always `git fetch origin main` and `git diff origin/main..HEAD` to verify what's actually missing before creating a follow-up PR.
 - **Never push to a merged PR's branch** — create a fresh branch from `origin/main` instead.
 
+## Documentation Rules
+Before every PR, check and update all documentation to reflect the changes being made:
+- **CLAUDE.md** — Update Key Architecture, Commands, Important Patterns, and Common Pitfalls sections if new systems, scenes, patterns, or gotchas were introduced.
+- **README.md** — Update feature list, screenshots, and setup instructions if user-facing behavior changed.
+- **CHANGELOG.md** — Add entry for the new version describing what changed (if the project uses a changelog).
+- **package.json** — Verify `description`, `keywords`, and `scripts` are current.
+- **manifest.json** — Update `description` if the game's scope or branding changed.
+- **Code comments** — Update JSDoc/comments on any public APIs whose behavior changed.
+- **This is a blocking requirement** — do not create a PR until documentation is verified and updated.
+
 ## Custom Slash Commands
 - `/review-and-ship` — Full pipeline: SR dev review, code simplifier review, fix findings, unit tests, build, browser automation, commit, push, create/update PR.
