@@ -36,5 +36,10 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - Ghost enemies must disable their physics body during invisible phase.
 - Enemy sprites are pooled — body size must be updated when texture changes on reuse.
 
+## PR Workflow Rules
+- **Always check if a PR is already merged/closed** before pushing to its branch or updating it. Use `mcp__github__pull_request_read` with `method: "get"` and check the `state` field. If merged, create a new branch from main and a new PR.
+- **Squash merges drop later commits.** When a PR is squash-merged, only commits that existed at merge time are included. Always `git fetch origin main` and `git diff origin/main..HEAD` to verify what's actually missing before creating a follow-up PR.
+- **Never push to a merged PR's branch** — create a fresh branch from `origin/main` instead.
+
 ## Custom Slash Commands
 - `/review-and-ship` — Full pipeline: SR dev review, code simplifier review, fix findings, unit tests, build, browser automation, commit, push, create/update PR.
