@@ -1,0 +1,25 @@
+{
+  "name": "TurboHop",
+  "short_name": "TurboHop",
+  "description": "A fast-paced pixel platformer — jump, stomp, and collect!",
+  "start_url": "/TurboHop/",
+  "scope": "/TurboHop/",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

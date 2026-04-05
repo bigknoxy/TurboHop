@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>TurboHop</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/TurboHop/manifest.json" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TurboHop" />
+  <link rel="apple-touch-icon" href="/TurboHop/icons/icon-192.svg" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
@@ -15,12 +24,19 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      min-height: 100dvh; /* overrides on modern browsers */
       overflow: hidden;
       touch-action: none;
     }
     #game {
       image-rendering: pixelated;
       image-rendering: crisp-edges;
+      /* Safe area: pad the game container so Phaser centers within safe bounds */
+      padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
     }
   </style>
 </head>
