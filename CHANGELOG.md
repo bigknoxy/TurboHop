@@ -1,5 +1,10 @@
 # Changelog
 
+
+## [v0.2.0] - 2026-04-05
+
+- feat: add 8 major engagement features for v2 (cfd631e)
+
 ## [v1.0.0] - 2026-04-05
 
 - feat: implement TurboHop SNES-style endless platformer (2524980)
