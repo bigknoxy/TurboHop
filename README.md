@@ -9,7 +9,7 @@ A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite +
 
 ## Play
 
-**[Play TurboHop](https://bigknoxy.github.io/turbohop/)** (GitHub Pages)
+**[Play TurboHop](https://bigknoxy.github.io/TurboHop/)** (GitHub Pages)
 
 ## Gameplay
 
