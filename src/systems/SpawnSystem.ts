@@ -107,19 +107,42 @@ export class SpawnSystem implements ISystem {
   }
 
   private spawnEnemy(): void {
-    const type: EnemyType = Math.random() < 0.6 ? 'slime' : 'bird';
+    const type = this.pickEnemyType();
     const x = GAME_WIDTH + 20;
     let y: number;
 
-    if (type === 'slime') {
-      y = this.lastPlatformY - 16;
-    } else {
-      y = 40 + Math.random() * (GAME_HEIGHT * 0.4);
+    switch (type) {
+      case 'slime':
+        y = this.lastPlatformY - 16;
+        break;
+      case 'bird':
+        y = 40 + Math.random() * (GAME_HEIGHT * 0.4);
+        break;
+      case 'bat':
+        y = 30 + Math.random() * 20; // starts near top
+        break;
+      case 'spike':
+        y = this.lastPlatformY - 8; // sits on platform
+        break;
+      case 'ghost':
+        y = 50 + Math.random() * (GAME_HEIGHT * 0.5);
+        break;
+      default:
+        y = this.lastPlatformY - 16;
     }
 
     const enemy = this.enemyFactory.create(x, y, type);
     const body = enemy.body as Phaser.Physics.Arcade.Body;
     body.setVelocityX(-this.scrollSpeed);
+  }
+
+  private pickEnemyType(): EnemyType {
+    const roll = Math.random();
+    // Difficulty-gated enemy types
+    if (this.difficulty >= 5 && roll < 0.12) return 'ghost';
+    if (this.difficulty >= 3 && roll < 0.25) return 'bat';
+    if (this.difficulty >= 1 && roll < 0.35) return 'spike';
+    return roll < 0.6 ? 'slime' : 'bird';
   }
 
   private spawnCoins(): void {

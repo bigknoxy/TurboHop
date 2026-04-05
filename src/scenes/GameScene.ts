@@ -12,6 +12,8 @@ import { MissionSystem } from '../systems/MissionSystem';
 import { PowerUpSystem, PowerUpType } from '../systems/PowerUpSystem';
 import { UpgradeSystem } from '../systems/UpgradeSystem';
 import { EventBus } from '../utils/EventBus';
+import { fadeIn, fadeOut } from '../utils/TransitionHelper';
+import { SettingsSystem } from '../systems/SettingsSystem';
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -91,6 +93,10 @@ export class GameScene extends Phaser.Scene {
       jumpBoost: jumpBoost || undefined,
     });
 
+    // Camera lerp + lookahead
+    this.cameras.main.startFollow(this.player.sprite, true, 0.08, 0.1, -40, 0);
+    this.cameras.main.setBounds(0, 0, GAME_WIDTH + 80, GAME_HEIGHT);
+
     // Collisions
     this.physics.add.collider(this.player.sprite, this.platformFactory.getGroup());
 
@@ -140,14 +146,18 @@ export class GameScene extends Phaser.Scene {
         missions: this.missionSystem.getMissions(),
       };
       this.time.delayedCall(800, () => {
-        this.scene.stop('UIScene');
-        this.scene.start('GameOverScene', results);
+        fadeOut(this, 300, () => {
+          this.scene.stop('UIScene');
+          this.scene.start('GameOverScene', results);
+        });
       });
     });
 
-    // Player hit — screen shake
+    // Player hit — screen shake (respects reduced motion)
     EventBus.on('player:hit', () => {
-      this.cameras.main.shake(100, 0.01);
+      if (!SettingsSystem.reducedMotion) {
+        this.cameras.main.shake(100, 0.01);
+      }
     });
 
     // Mission complete notification
@@ -161,16 +171,26 @@ export class GameScene extends Phaser.Scene {
       this.createDustPuff(data.x, data.y);
     });
 
-    // CRT scanline overlay
+    // CRT scanline overlay (disabled in reduced motion)
     this.scanlineGfx = this.add.graphics();
-    this.scanlineGfx.setScrollFactor(0);
-    this.scanlineGfx.setDepth(1000);
-    this.scanlineGfx.lineStyle(1, 0x000000, 0.12);
-    for (let y = 0; y < GAME_HEIGHT; y += 2) {
-      this.scanlineGfx.moveTo(0, y);
-      this.scanlineGfx.lineTo(GAME_WIDTH, y);
+    if (!SettingsSystem.reducedMotion) {
+      this.scanlineGfx.setScrollFactor(0);
+      this.scanlineGfx.setDepth(1000);
+      this.scanlineGfx.lineStyle(1, 0x000000, 0.12);
+      for (let y = 0; y < GAME_HEIGHT; y += 2) {
+        this.scanlineGfx.moveTo(0, y);
+        this.scanlineGfx.lineTo(GAME_WIDTH, y);
+      }
+      this.scanlineGfx.strokePath();
     }
-    this.scanlineGfx.strokePath();
+
+    // Vignette overlay
+    if (this.textures.exists('vignette')) {
+      this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'vignette').setDepth(999).setScrollFactor(0).setAlpha(0.25);
+    }
+
+    // Fade in from black
+    fadeIn(this, 400);
 
     // Clean up systems when scene shuts down
     this.events.on('shutdown', () => this.shutdown());
@@ -286,11 +306,10 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    // Speed lines at high difficulty
-    this.drawSpeedLines(speed, time);
-
-    // Near-miss detection
-    this.checkNearMiss();
+    if (!SettingsSystem.reducedMotion) {
+      this.drawSpeedLines(speed, time);
+      this.checkNearMiss();
+    }
   }
 
   shutdown() {
@@ -355,8 +374,9 @@ export class GameScene extends Phaser.Scene {
     const playerBody = this.player.body;
     const enemyBody = enemy.body as Phaser.Physics.Arcade.Body;
 
-    // Stomp check: player is falling and above the enemy
-    if (playerBody.velocity.y > 0 && playerBody.bottom < enemyBody.center.y) {
+    const stompable = enemy.getData('stompable') !== false;
+    // Stomp check: player is falling and above the enemy (and enemy is stompable)
+    if (stompable && playerBody.velocity.y > 0 && playerBody.bottom < enemyBody.center.y) {
       // Stomp!
       enemy.setActive(false).setVisible(false);
       enemyBody.stop();
@@ -401,6 +421,18 @@ export class GameScene extends Phaser.Scene {
 
     // Sparkle effect
     this.createParticles(coin.x, coin.y, 0xffdd00, 6);
+
+    // Coin fly-to-HUD
+    const flyCircle = this.add.circle(coin.x, coin.y, 4, 0xffdd00);
+    flyCircle.setDepth(600);
+    this.tweens.add({
+      targets: flyCircle,
+      x: 16, y: 20,
+      scale: 0.3,
+      duration: 400,
+      ease: 'Quad.easeIn',
+      onComplete: () => flyCircle.destroy(),
+    });
 
     // Score popup
     this.showFloatingText(coin.x, coin.y - 8, isDouble ? '+2' : '+1', '#ffdd00');

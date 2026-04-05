@@ -12,6 +12,9 @@ export class JumpComponent implements IComponent {
   private maxJumpVelocity = -500;
   private doubleJumpVelocity = -300;
   private hasReleasedAfterJump = true;
+  private coyoteTimer = 0;
+  private bufferTimer = 0;
+  private wasOnGround = false;
 
   constructor(body: Phaser.Physics.Arcade.Body) {
     this.body = body;
@@ -31,19 +34,28 @@ export class JumpComponent implements IComponent {
   tryJump(): boolean {
     if (!this.hasReleasedAfterJump) return false;
 
-    if (this.jumpCount < this.maxJumps) {
-      if (this.jumpCount === 0) {
-        this.body.setVelocityY(this.baseJumpVelocity);
-        this.isHolding = true;
-        this.holdTime = 0;
-      } else {
-        this.body.setVelocityY(this.doubleJumpVelocity);
-        this.isHolding = false;
-      }
-      this.jumpCount++;
+    // Allow first jump if on ground OR within coyote time
+    const canFirstJump = this.jumpCount === 0 && (this.isOnGround || this.coyoteTimer > 0);
+    const canDoubleJump = this.jumpCount === 1;
+
+    if (canFirstJump) {
+      this.body.setVelocityY(this.baseJumpVelocity);
+      this.isHolding = true;
+      this.holdTime = 0;
+      this.jumpCount = 1;
+      this.coyoteTimer = 0;
+      this.hasReleasedAfterJump = false;
+      return true;
+    } else if (canDoubleJump) {
+      this.body.setVelocityY(this.doubleJumpVelocity);
+      this.isHolding = false;
+      this.jumpCount = 2;
       this.hasReleasedAfterJump = false;
       return true;
     }
+
+    // Buffer the jump attempt for when we land
+    this.bufferTimer = 100;
     return false;
   }
 
@@ -68,11 +80,41 @@ export class JumpComponent implements IComponent {
     return this.body.blocked.down || this.body.touching.down;
   }
 
-  update(_delta: number): void {
-    if (this.isOnGround) {
+  /** Returns true if a buffered jump was executed (caller should emit jump event) */
+  update(delta: number): boolean {
+    const onGround = this.isOnGround;
+
+    if (onGround) {
       this.jumpCount = 0;
       this.isHolding = false;
+      this.coyoteTimer = 0;
+
+      // Execute buffered jump
+      if (this.bufferTimer > 0 && this.hasReleasedAfterJump) {
+        this.bufferTimer = 0;
+        this.body.setVelocityY(this.baseJumpVelocity);
+        this.isHolding = true;
+        this.holdTime = 0;
+        this.jumpCount = 1;
+        this.hasReleasedAfterJump = false;
+        return true; // buffered jump executed
+      }
+    } else {
+      // Start coyote timer when leaving ground (not from jumping)
+      if (this.wasOnGround && this.jumpCount === 0) {
+        this.coyoteTimer = 80;
+      }
+      if (this.coyoteTimer > 0) {
+        this.coyoteTimer -= delta;
+      }
     }
+
+    if (this.bufferTimer > 0) {
+      this.bufferTimer -= delta;
+    }
+
+    this.wasOnGround = onGround;
+    return false;
   }
 
   destroy(): void {}

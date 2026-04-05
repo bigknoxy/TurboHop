@@ -20,28 +20,22 @@ export class Player extends Entity {
     super();
     this.scene = scene;
 
-    // Apply skin color
     const skinName = localStorage.getItem('turbohop_skin') || 'BLUE';
-    const skinColors: Record<string, number> = {
-      BLUE: 0x4488ff,
-      RED: 0xff4444,
-      GREEN: 0x44ff44,
-      GOLD: 0xffdd00,
-      PURPLE: 0xaa44ff,
-    };
-    const color = skinColors[skinName] ?? 0x4488ff;
 
-    // Generate skin-specific texture if needed
+    // Check for pre-generated skin texture (new skins from BootScene)
+    // or fall back to generating a simple palette swap
     if (skinName !== 'BLUE' && !scene.textures.exists(`player-${skinName}`)) {
+      const skinColors: Record<string, number> = {
+        RED: 0xff4444, GREEN: 0x44ff44, GOLD: 0xffdd00, PURPLE: 0xaa44ff,
+      };
+      const color = skinColors[skinName] ?? 0x4488ff;
       const gfx = scene.make.graphics({ x: 0, y: 0 }, false);
       gfx.fillStyle(color);
       gfx.fillRect(0, 0, 16, 24);
       gfx.fillStyle(0xffffff);
-      gfx.fillRect(4, 6, 4, 4);
-      gfx.fillRect(10, 6, 4, 4);
+      gfx.fillRect(4, 6, 4, 4); gfx.fillRect(10, 6, 4, 4);
       gfx.fillStyle(0x000000);
-      gfx.fillRect(6, 7, 2, 3);
-      gfx.fillRect(12, 7, 2, 3);
+      gfx.fillRect(6, 7, 2, 3); gfx.fillRect(12, 7, 2, 3);
       gfx.fillStyle(0xffaa44);
       gfx.fillRect(5, 14, 6, 2);
       gfx.generateTexture(`player-${skinName}`, 16, 24);
@@ -59,7 +53,6 @@ export class Player extends Entity {
 
     this.jumpComp = this.addComponent('jump', new JumpComponent(this.body));
 
-    // Apply upgrades if provided
     if (upgrades?.extraHp) {
       this.hp = upgrades.extraHp;
       this.maxHp = upgrades.extraHp;
@@ -68,16 +61,25 @@ export class Player extends Entity {
       this.jumpComp.setDoubleJumpBoost(upgrades.jumpBoost);
     }
 
-    // Input
+    // Input — keyboard + touch
     scene.input.on('pointerdown', () => this.onInputDown());
     scene.input.on('pointerup', () => this.onInputUp());
-
     const keyboard = scene.input.keyboard;
     if (keyboard) {
       keyboard.on('keydown-SPACE', () => this.onInputDown());
       keyboard.on('keyup-SPACE', () => this.onInputUp());
       keyboard.on('keydown-UP', () => this.onInputDown());
       keyboard.on('keyup-UP', () => this.onInputUp());
+    }
+
+    // Gamepad support
+    if (scene.input.gamepad) {
+      scene.input.gamepad.on('down', (_pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button) => {
+        if (button.index === 0) this.onInputDown();
+      });
+      scene.input.gamepad.on('up', (_pad: Phaser.Input.Gamepad.Gamepad, button: Phaser.Input.Gamepad.Button) => {
+        if (button.index === 0) this.onInputUp();
+      });
     }
 
     EventBus.emit('player:hp', { hp: this.hp, maxHp: this.maxHp });
@@ -87,17 +89,17 @@ export class Player extends Entity {
     if (this.dead) return;
     this.isDown = true;
     if (this.jumpComp.tryJump()) {
-      EventBus.emit('player:jump');
-      // Stretch on jump
-      this.scene.tweens.add({
-        targets: this.sprite,
-        scaleX: 0.8,
-        scaleY: 1.3,
-        duration: 80,
-        yoyo: true,
-        ease: 'Sine.easeOut',
-      });
+      this.emitJump();
     }
+  }
+
+  private emitJump() {
+    EventBus.emit('player:jump');
+    this.scene.tweens.add({
+      targets: this.sprite,
+      scaleX: 0.8, scaleY: 1.3,
+      duration: 80, yoyo: true, ease: 'Sine.easeOut',
+    });
   }
 
   private onInputUp() {
@@ -113,23 +115,24 @@ export class Player extends Entity {
 
     if (this.hp <= 0) {
       this.dead = true;
-      // Death tumble animation
-      this.scene.tweens.add({
-        targets: this.sprite,
-        angle: 720,
-        y: this.sprite.y - 40,
-        duration: 400,
-        ease: 'Quad.easeOut',
-        onComplete: () => {
-          this.scene.tweens.add({
-            targets: this.sprite,
-            y: GAME_HEIGHT + 60,
-            duration: 500,
-            ease: 'Quad.easeIn',
-          });
-        },
+      // Death slowmo then tumble
+      this.scene.time.timeScale = 0.3;
+      this.scene.time.delayedCall(200, () => {
+        this.scene.time.timeScale = 1;
+        this.scene.tweens.add({
+          targets: this.sprite,
+          angle: 720, y: this.sprite.y - 40,
+          duration: 400, ease: 'Quad.easeOut',
+          onComplete: () => {
+            this.scene.tweens.add({
+              targets: this.sprite,
+              y: GAME_HEIGHT + 60,
+              duration: 500, ease: 'Quad.easeIn',
+            });
+          },
+        });
+        EventBus.emit('player:dead');
       });
-      EventBus.emit('player:dead');
       return;
     }
 
@@ -141,41 +144,38 @@ export class Player extends Entity {
     this.body.setVelocityY(-250);
   }
 
-  get isDead(): boolean {
-    return this.dead;
-  }
-
-  get isInvincible(): boolean {
-    return this.invincible;
-  }
+  get isDead(): boolean { return this.dead; }
+  get isInvincible(): boolean { return this.invincible; }
 
   update(delta: number): void {
-    super.update(delta);
-
     if (this.dead) return;
 
-    // Variable jump hold
-    if (this.isDown) {
-      this.jumpComp.holdJump(delta);
+    if (this.isDown) this.jumpComp.holdJump(delta);
+
+    // Buffered jump check (replaces super.update component loop)
+    const bufferedJump = this.jumpComp.update(delta);
+    if (bufferedJump) this.emitJump();
+
+    // Jump hang time — reduce effective gravity near apex
+    if (Math.abs(this.body.velocity.y) < 50 && !this.jumpComp.isOnGround) {
+      this.body.setGravityY(-400);
+    } else {
+      this.body.setGravityY(0);
     }
 
     // Landing detection — squash + dust
     const onGround = this.body.blocked.down || this.body.touching.down;
     if (onGround && this.wasAirborne) {
-      // Squash on land
       this.scene.tweens.add({
         targets: this.sprite,
-        scaleX: 1.3,
-        scaleY: 0.7,
-        duration: 60,
-        yoyo: true,
-        ease: 'Sine.easeOut',
+        scaleX: 1.3, scaleY: 0.7,
+        duration: 60, yoyo: true, ease: 'Sine.easeOut',
       });
       EventBus.emit('player:land', { x: this.sprite.x, y: this.sprite.y + 12 });
     }
     this.wasAirborne = !onGround;
 
-    // Invincibility timer + blink
+    // Invincibility blink
     if (this.invincible) {
       this.invincibleTimer -= delta;
       this.sprite.setAlpha(Math.sin(this.invincibleTimer * 0.02) > 0 ? 1 : 0.3);

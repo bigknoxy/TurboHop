@@ -74,17 +74,18 @@ export class AudioSystem implements ISystem {
     return this.muted;
   }
 
-  private playTone(freq: number, duration: number, type: OscillatorType = 'square', volume = 0.15) {
+  private playTone(freq: number, duration: number, type: OscillatorType = 'square', volume = 0.15, varyPitch = false) {
     if (this.muted || !this.audioContext) return;
 
     try {
       if (this.audioContext.state === 'suspended') {
         this.audioContext.resume();
       }
+      const finalFreq = varyPitch ? freq * (0.97 + Math.random() * 0.06) : freq;
       const osc = this.audioContext.createOscillator();
       const gain = this.audioContext.createGain();
       osc.type = type;
-      osc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+      osc.frequency.setValueAtTime(finalFreq, this.audioContext.currentTime);
       gain.gain.setValueAtTime(volume, this.audioContext.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
       osc.connect(gain);
@@ -106,12 +107,12 @@ export class AudioSystem implements ISystem {
   }
 
   private playJump() {
-    this.playTone(440, 0.1, 'square', 0.1);
+    this.playTone(440, 0.1, 'square', 0.1, true);
     this.delayedTone(50, 580, 0.08, 'square', 0.08);
   }
 
   private playCoin() {
-    this.playTone(880, 0.08, 'square', 0.1);
+    this.playTone(880, 0.08, 'square', 0.1, true);
     this.delayedTone(60, 1200, 0.12, 'square', 0.08);
   }
 

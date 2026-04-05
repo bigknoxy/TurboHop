@@ -10,9 +10,17 @@ interface SkinData {
 const SKINS: SkinData[] = [
   { name: 'BLUE', color: 0x4488ff, cost: 0 },
   { name: 'RED', color: 0xff4444, cost: 10 },
+  { name: 'NINJA', color: 0x222222, cost: 20 },
   { name: 'GREEN', color: 0x44ff44, cost: 25 },
+  { name: 'CAT', color: 0xff9944, cost: 25 },
+  { name: 'ROBOT', color: 0x888888, cost: 30 },
+  { name: 'WIZARD', color: 0x5522aa, cost: 40 },
   { name: 'GOLD', color: 0xffdd00, cost: 50 },
+  { name: 'ASTRO', color: 0xeeeeee, cost: 50 },
+  { name: 'SKELLY', color: 0x111111, cost: 75 },
   { name: 'PURPLE', color: 0xaa44ff, cost: 100 },
+  { name: 'DRAGON', color: 0x22aa44, cost: 100 },
+  { name: 'RAINBOW', color: 0xff0000, cost: 150 },
 ];
 
 export class ShopScene extends Phaser.Scene {
@@ -46,18 +54,18 @@ export class ShopScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     SKINS.forEach((skin, i) => {
-      const y = 65 + i * 28;
+      const y = 55 + i * 12;
       const owned = ownedSkins.includes(skin.name);
       const equipped = equippedSkin === skin.name;
 
       // Color preview
-      const preview = this.add.rectangle(40, y, 16, 16, skin.color);
+      const preview = this.add.rectangle(30, y, 8, 8, skin.color);
       preview.setStrokeStyle(1, 0xffffff);
 
       // Name
-      this.add.text(60, y - 6, skin.name, {
+      this.add.text(42, y - 3, skin.name, {
         fontFamily: '"Press Start 2P"',
-        fontSize: '7px',
+        fontSize: '5px',
         color: '#ffffff',
       });
 
@@ -76,9 +84,9 @@ export class ShopScene extends Phaser.Scene {
       }
 
       const btn = this.add
-        .text(GAME_WIDTH - 40, y - 4, btnText, {
+        .text(GAME_WIDTH - 30, y - 3, btnText, {
           fontFamily: '"Press Start 2P"',
-          fontSize: '6px',
+          fontSize: '5px',
           color: btnColor,
         })
         .setOrigin(1, 0)
