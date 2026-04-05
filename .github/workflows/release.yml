@@ -112,7 +112,7 @@ jobs:
         run: |
           VERSION=${{ steps.bump.outputs.new_version }}
           if [ -f README.md ]; then
-            sed -i "s/version-v[0-9]*\.[0-9]*\.[0-9]*/version-${VERSION}/" README.md
+            sed -i "s/version-v[0-9]*\.[0-9]*\.[0-9]*/version-${VERSION}/g" README.md
           fi
 
       - name: Commit version bump

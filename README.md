@@ -1,6 +1,6 @@
 # TurboHop
 
-![version-v0.2.0](https://img.shields.io/badge/version-v1.0.0-blue)
+![Version](https://img.shields.io/badge/version-v0.2.0-blue)
 ![Phaser 3](https://img.shields.io/badge/Phaser-3.80-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![Vite](https://img.shields.io/badge/Vite-5.x-purple)
@@ -17,8 +17,12 @@ A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite +
 - **Tap / Space / Up Arrow** to jump
 - **Hold** for higher jump, **tap again mid-air** for double-jump
 - **Stomp enemies** by landing on top, avoid side contact
-- **Collect coins** to spend in the shop on character skins
+- **Collect coins** to spend in the shop on character skins or permanent upgrades
 - **Survive** as the speed ramps up every 15 seconds
+- **Complete missions** — 3 rotating goals per run for bonus coins
+- **Grab power-ups** — Magnet, Shield, 2x Coins, Speed Boost
+- **Upgrade permanently** — Extra HP, Coin Magnet, Slow Start, Jump Boost, Starting Shield
+- **Daily rewards** — 7-day streak calendar with escalating coin payouts
 
 ## Tech Stack
 
@@ -38,10 +42,10 @@ Entity-Component pattern with SOLID principles:
 src/
 ├── main.ts               # Phaser game config + bootstrap
 ├── constants.ts           # Game constants (gravity, speed, dimensions)
-├── scenes/                # Phaser scenes (Boot, Menu, Game, UI, GameOver, Shop)
+├── scenes/                # Phaser scenes (Boot, Menu, Game, UI, GameOver, Shop, Upgrade)
 ├── entities/              # Entity base class + Player
 ├── components/            # Reusable behaviors (JumpComponent)
-├── systems/               # Game-wide logic (Difficulty, Spawn, Score, Save, Audio)
+├── systems/               # Game logic (Difficulty, Spawn, Score, Save, Audio, Mission, PowerUp, Upgrade, DailyReward)
 ├── factories/             # Object creation (PlatformFactory, EnemyFactory)
 ├── interfaces/            # TypeScript contracts (IEntity, IComponent, ISystem)
 └── utils/                 # EventBus (singleton), ObjectPool (generic)
@@ -59,7 +63,7 @@ src/
 ### Scene Flow
 
 ```
-BootScene → MenuScene → GameScene + UIScene → GameOverScene → GameScene / ShopScene
+BootScene → MenuScene → GameScene + UIScene → GameOverScene → GameScene / ShopScene / UpgradeScene
 ```
 
 ## Development
