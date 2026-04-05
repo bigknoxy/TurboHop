@@ -5,7 +5,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![Vite](https://img.shields.io/badge/Vite-5.x-purple)
 
-A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite + Bun.
+A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite + Bun. Installable as a PWA for fullscreen mobile play.
 
 ## Play
 
@@ -18,11 +18,16 @@ A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite +
 - **Hold** for higher jump, **tap again mid-air** for double-jump
 - **Stomp enemies** by landing on top, avoid side contact
 - **Collect coins** to spend in the shop on character skins or permanent upgrades
+- **5 enemy types** — Slime, Bird, Bat (swoops), Spike (unstompable), Ghost (phases in/out)
+- **13 character skins** — Blue, Red, Ninja, Cat, Robot, Wizard, Gold, Astronaut, Skeleton, Purple, Dragon, Rainbow, Green
 - **Survive** as the speed ramps up every 15 seconds
 - **Complete missions** — 3 rotating goals per run for bonus coins
 - **Grab power-ups** — Magnet, Shield, 2x Coins, Speed Boost
 - **Upgrade permanently** — Extra HP, Coin Magnet, Slow Start, Jump Boost, Starting Shield
 - **Daily rewards** — 7-day streak calendar with escalating coin payouts
+- **Install as app** — PWA support for fullscreen mobile play, no browser chrome
+- **Gamepad support** — A button to jump
+- **Accessibility** — Reduced motion mode, colorblind mode, settings scene
 
 ## Tech Stack
 
@@ -42,13 +47,14 @@ Entity-Component pattern with SOLID principles:
 src/
 ├── main.ts               # Phaser game config + bootstrap
 ├── constants.ts           # Game constants (gravity, speed, dimensions)
-├── scenes/                # Phaser scenes (Boot, Menu, Game, UI, GameOver, Shop, Upgrade)
+├── scenes/                # Phaser scenes (Boot, Menu, Game, UI, GameOver, Shop, Upgrade, Settings)
 ├── entities/              # Entity base class + Player
 ├── components/            # Reusable behaviors (JumpComponent)
-├── systems/               # Game logic (Difficulty, Spawn, Score, Save, Audio, Mission, PowerUp, Upgrade, DailyReward)
+├── systems/               # Game logic (Difficulty, Spawn, Score, Save, Audio, Mission, PowerUp, Upgrade, DailyReward, Settings, InstallManager)
 ├── factories/             # Object creation (PlatformFactory, EnemyFactory)
 ├── interfaces/            # TypeScript contracts (IEntity, IComponent, ISystem)
-└── utils/                 # EventBus (singleton), ObjectPool (generic)
+├── __tests__/             # Unit tests (Vitest + jsdom)
+└── utils/                 # EventBus, ButtonHelper, TransitionHelper
 ```
 
 ### Key Patterns
@@ -63,7 +69,9 @@ src/
 ### Scene Flow
 
 ```
-BootScene → MenuScene → GameScene + UIScene → GameOverScene → GameScene / ShopScene / UpgradeScene
+BootScene → MenuScene → GameScene + UIScene → GameOverScene → GameScene / MenuScene / ShopScene / UpgradeScene
+                ↕
+          SettingsScene
 ```
 
 ## Development
@@ -84,6 +92,9 @@ bun run dev
 # Production build
 bun run build
 
+# Run unit tests
+npm test
+
 # Preview production build
 bun run preview
 ```
@@ -96,7 +107,9 @@ bun run preview
 | Tile Size | 16x16px |
 | Player Size | 16x24px |
 | Font | Press Start 2P |
-| Effects | CRT scanlines, parallax backgrounds, screen shake, particle effects |
+| Scaling | ENVELOP (fills entire screen, crops overflow) |
+| Effects | CRT scanlines, parallax backgrounds, screen shake, particle effects, vignette |
+| PWA | Installable, landscape orientation lock, standalone display mode |
 
 ## CI/CD
 
