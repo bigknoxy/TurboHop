@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.5.1] - 2026-04-05
+
+- fix: fill entire screen on mobile + add PR workflow rules (#6) (cbf7a86)
+
+
 ## [v0.5.0] - 2026-04-05
 
 - feat: install prompt, HOME button, unit tests & project guide (#5) (8d81663)
