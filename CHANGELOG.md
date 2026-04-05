@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.4.0] - 2026-04-05
+
+- feat: fullscreen mode, PWA support & version display (#4) (0a59f0f)
+
+
 ## [v0.3.0] - 2026-04-05
 
 - feat: v3 professional polish, content & accessibility (#3) (48202ad)
