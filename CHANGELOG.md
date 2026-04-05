@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.1.1] - 2026-04-05
+
+- fix: correct GitHub Pages base path to match repo casing (8546959)
+
+
 ## [v0.1.0] - 2026-04-05
 
 - Initial commit (e8036ce)
