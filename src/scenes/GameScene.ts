@@ -113,8 +113,9 @@ export class GameScene extends Phaser.Scene {
     this.spawnSystem.setScrollSpeed(this.difficultySystem.speed);
   }
 
-  update(time: number, delta: number) {
+  update(time: number, rawDelta: number) {
     if (this.gameOver) return;
+    const delta = Math.min(rawDelta, 33.33); // cap at ~30fps to prevent teleporting on tab resume
 
     this.player.update(delta);
     this.difficultySystem.update(delta);

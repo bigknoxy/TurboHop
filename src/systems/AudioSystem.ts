@@ -24,6 +24,7 @@ export class AudioSystem implements ISystem {
   private onHit = () => this.playHit();
   private onDead = () => this.playDeath();
   private onStomp = () => this.playStomp();
+  private onToggle = () => this.toggleMute();
 
   constructor(_scene: Phaser.Scene) {
     this.audioContext = getAudioContext();
@@ -33,6 +34,7 @@ export class AudioSystem implements ISystem {
     EventBus.on('player:hit', this.onHit);
     EventBus.on('player:dead', this.onDead);
     EventBus.on('enemy:stomp', this.onStomp);
+    EventBus.on('audio:toggle', this.onToggle);
   }
 
   toggleMute(): boolean {
@@ -113,5 +115,6 @@ export class AudioSystem implements ISystem {
     EventBus.off('player:hit', this.onHit);
     EventBus.off('player:dead', this.onDead);
     EventBus.off('enemy:stomp', this.onStomp);
+    EventBus.off('audio:toggle', this.onToggle);
   }
 }
