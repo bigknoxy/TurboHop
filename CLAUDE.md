@@ -1,0 +1,40 @@
+# TurboHop — Claude Code Project Guide
+
+## Project Overview
+TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player auto-runs right, jumping between platforms, collecting coins, and stomping enemies.
+
+## Tech Stack
+- **Engine:** Phaser 3 (v3.80+)
+- **Language:** TypeScript (strict)
+- **Build:** Vite 5 with `base: '/TurboHop/'`
+- **Tests:** Vitest + jsdom
+- **Deploy:** GitHub Pages at https://bigknoxy.github.io/TurboHop/
+
+## Key Architecture
+- `src/scenes/` — Phaser scenes (BootScene, MenuScene, GameScene, UIScene, GameOverScene, ShopScene, UpgradeScene, SettingsScene)
+- `src/entities/` — Player entity with component system
+- `src/systems/` — Game systems (Audio, Score, Difficulty, Spawn, Mission, PowerUp, Save, Settings, InstallManager)
+- `src/factories/` — Platform and enemy factories with object pooling
+- `src/utils/` — ButtonHelper, TransitionHelper, EventBus
+- `src/constants.ts` — Game dimensions (384x216), physics constants
+
+## Commands
+- `bun run build` — TypeScript check + Vite production build
+- `npm test` — Run vitest unit tests
+- `npx tsc --noEmit` — Type check only
+
+## Important Patterns
+- **EventBus** — Global event emitter for cross-system communication. GameScene calls `EventBus.removeAllListeners()` in create().
+- **Object Pooling** — Enemies and coins reuse inactive sprites via factory groups.
+- **PWA** — manifest.json in public/, InstallManager singleton captures beforeinstallprompt.
+- **Scene Lifecycle** — GameScene registers shutdown handler. UIScene runs in parallel via `scene.launch()`.
+
+## Common Pitfalls
+- Don't use `time.timeScale` — it affects all timers globally. Use camera effects instead.
+- UIScene runs as a parallel scene — pointer events propagate to both UIScene and GameScene.
+- `EventBus.removeAllListeners()` in GameScene.create() nukes all listeners — systems must re-register.
+- Ghost enemies must disable their physics body during invisible phase.
+- Enemy sprites are pooled — body size must be updated when texture changes on reuse.
+
+## Custom Slash Commands
+- `/review-and-ship` — Full pipeline: SR dev review, code simplifier review, fix findings, unit tests, build, browser automation, commit, push, create/update PR.
