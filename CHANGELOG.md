@@ -1,5 +1,11 @@
 # Changelog
 
+
+## [v0.1.0] - 2026-04-05
+
+- Initial commit (e8036ce)
+- feat: TurboHop SNES-style endless platformer game (#1) (3440dff)
+
 ## [v1.0.0] - 2026-04-05
 
 - feat: implement TurboHop SNES-style endless platformer (2524980)
