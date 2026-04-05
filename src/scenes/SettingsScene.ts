@@ -3,6 +3,7 @@ import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { SettingsSystem } from '../systems/SettingsSystem';
 import { makeButton } from '../utils/ButtonHelper';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
+import { InstallManager } from '../systems/InstallManager';
 
 export class SettingsScene extends Phaser.Scene {
   constructor() {
@@ -27,7 +28,7 @@ export class SettingsScene extends Phaser.Scene {
     ];
 
     toggles.forEach((toggle, i) => {
-      const y = 50 + i * 30;
+      const y = 46 + i * 24;
 
       this.add.text(30, y, toggle.label, {
         fontFamily: '"Press Start 2P"',
@@ -51,6 +52,28 @@ export class SettingsScene extends Phaser.Scene {
         btn.setColor(newState ? '#44ff44' : '#ff4444');
       });
     });
+
+    // Install app option
+    const installY = 46 + toggles.length * 24;
+    if (InstallManager.isInstalled) {
+      this.add.text(30, installY, 'APP INSTALLED', {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '6px',
+        color: '#44ff44',
+      });
+    } else if (InstallManager.canInstall) {
+      this.add.text(30, installY, 'INSTALL APP', {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '6px',
+        color: '#ffffff',
+      });
+      const installBtn = makeButton(this, GAME_WIDTH - 40, installY + 4, 'INSTALL', {
+        fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#44ff44',
+      }, () => {
+        InstallManager.promptInstall().catch(() => {});
+      });
+      installBtn.setOrigin(0.5);
+    }
 
     // Back button
     makeButton(this, GAME_WIDTH / 2, GAME_HEIGHT - 20, 'BACK', {

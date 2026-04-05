@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { GAME_WIDTH } from '../constants';
 import { EventBus } from '../utils/EventBus';
 import { Mission } from '../systems/MissionSystem';
-import { addFullscreenButton } from '../utils/ButtonHelper';
 
 export class UIScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
@@ -65,9 +64,6 @@ export class UIScene extends Phaser.Scene {
       this.muteBtn.setColor(this.muted ? '#ff4444' : '#888888');
       this.muteBtn.setText(this.muted ? 'MUTE' : 'SND');
     });
-
-    // Fullscreen toggle (below mute)
-    addFullscreenButton(this, GAME_WIDTH - 10, 34);
 
     // Mission display (bottom-left)
     this.missionTexts = [];
