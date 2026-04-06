@@ -35,6 +35,7 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - `EventBus.removeAllListeners()` in GameScene.create() nukes all listeners — systems must re-register.
 - Ghost enemies must disable their physics body during invisible phase.
 - Enemy sprites are pooled — body size must be updated when texture changes on reuse.
+- **ENVELOP scale mode crops edges** — ~25-30px from top/bottom on ultra-wide phones. Keep interactive elements within y=30..186 safe zone.
 
 ## PR Workflow Rules
 - **Always check if a PR is already merged/closed** before pushing to its branch or updating it. Check the PR state via the GitHub API. If merged, create a new branch from main and a new PR.

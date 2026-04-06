@@ -3,3 +3,5 @@ dist
 .DS_Store
 bun.lockb
 *.local
+screenshots/
+test-screens.cjs
