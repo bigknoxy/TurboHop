@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.5.3] - 2026-04-06
+
+- chore: add test artifacts to gitignore (9208e63)
+
+
 ## [v0.5.2] - 2026-04-05
 
 - fix: eliminate black bars on mobile + add documentation rules (#7) (01d78b6)

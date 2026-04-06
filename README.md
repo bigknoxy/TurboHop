@@ -1,6 +1,6 @@
 # TurboHop
 
-![Version](https://img.shields.io/badge/version-v0.5.2-blue)
+![Version](https://img.shields.io/badge/version-v0.5.3-blue)
 ![Phaser 3](https://img.shields.io/badge/Phaser-3.80-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![Vite](https://img.shields.io/badge/Vite-5.x-purple)
