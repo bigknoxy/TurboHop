@@ -2,17 +2,21 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { SaveSystem } from '../systems/SaveSystem';
 import { UpgradeSystem, UPGRADES } from '../systems/UpgradeSystem';
+import { makeButton } from '../utils/ButtonHelper';
+import { fadeIn, fadeOut } from '../utils/TransitionHelper';
 
 export class UpgradeScene extends Phaser.Scene {
   constructor() {
     super({ key: 'UpgradeScene' });
   }
 
-  create() {
+  create(data?: { from?: string }) {
+    const returnScene = data?.from || 'MenuScene';
+
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x1a1a2e);
 
     this.add
-      .text(GAME_WIDTH / 2, 14, 'UPGRADES', {
+      .text(GAME_WIDTH / 2, 20, 'UPGRADES', {
         fontFamily: '"Press Start 2P"',
         fontSize: '12px',
         color: '#ffaa44',
@@ -26,7 +30,7 @@ export class UpgradeScene extends Phaser.Scene {
     const totalCoins = saveSystem.getCoins();
 
     this.add
-      .text(GAME_WIDTH / 2, 30, `COINS: ${totalCoins}`, {
+      .text(GAME_WIDTH / 2, 36, `COINS: ${totalCoins}`, {
         fontFamily: '"Press Start 2P"',
         fontSize: '7px',
         color: '#ffdd00',
@@ -34,7 +38,7 @@ export class UpgradeScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     UPGRADES.forEach((def, i) => {
-      const y = 48 + i * 30;
+      const y = 52 + i * 26;
       const level = upgradeSystem.getLevel(def.id);
       const maxed = level >= def.maxLevel;
 
@@ -88,23 +92,18 @@ export class UpgradeScene extends Phaser.Scene {
       btn.on('pointerdown', () => {
         if (maxed) return;
         if (upgradeSystem.purchase(def.id)) {
-          this.scene.restart();
+          this.scene.restart({ from: returnScene });
         }
       });
     });
 
-    // Back button
-    const backBtn = this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT - 12, 'BACK', {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '8px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    backBtn.on('pointerdown', () => {
-      this.scene.start('MenuScene');
+    // Back button — positioned in ENVELOP-safe zone (not near edges)
+    makeButton(this, GAME_WIDTH / 2, 185, 'BACK', {
+      fontFamily: '"Press Start 2P"', fontSize: '10px', color: '#ffffff',
+    }, () => {
+      fadeOut(this, 200, () => this.scene.start(returnScene));
     });
+
+    fadeIn(this, 200);
   }
 }

@@ -19,6 +19,17 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create(data: GameOverData) {
+    // Store data in registry so it survives Shop/Upgrade round-trips
+    if (data?.score !== undefined) {
+      this.registry.set('lastGameOver', data);
+    } else {
+      data = this.registry.get('lastGameOver') as GameOverData;
+      if (!data) {
+        this.scene.start('MenuScene');
+        return;
+      }
+    }
+
     this.scene.stop('UIScene');
 
     // Track games played for install prompt
@@ -91,9 +102,9 @@ export class GameOverScene extends Phaser.Scene {
       fontFamily: '"Press Start 2P"', fontSize: '10px', color: '#44ff44',
     }, () => this.retry());
 
-    // Bottom row: HOME, SHARE, SHOP, UPGRADES
+    // Bottom row: HOME, SHARE, SHOP, UPGRADES (y=168 keeps within ENVELOP-safe zone)
     const btnStyle = { fontFamily: '"Press Start 2P"', fontSize: '6px' };
-    const btnY = 175;
+    const btnY = 168;
 
     makeButton(this, GAME_WIDTH * 1 / 5, btnY, 'HOME', {
       ...btnStyle, color: '#aaaaaa',
@@ -118,11 +129,11 @@ export class GameOverScene extends Phaser.Scene {
 
     makeButton(this, GAME_WIDTH * 3 / 5, btnY, 'SHOP', {
       ...btnStyle, color: '#44aaff',
-    }, () => this.scene.start('ShopScene'));
+    }, () => this.scene.start('ShopScene', { from: 'GameOverScene' }));
 
     makeButton(this, GAME_WIDTH * 4 / 5, btnY, 'UPGRADES', {
       ...btnStyle, color: '#ffaa44',
-    }, () => this.scene.start('UpgradeScene'));
+    }, () => this.scene.start('UpgradeScene', { from: 'GameOverScene' }));
 
     // Keyboard retry
     this.input.keyboard?.once('keydown-SPACE', () => this.retry());

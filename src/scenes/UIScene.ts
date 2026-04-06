@@ -65,10 +65,10 @@ export class UIScene extends Phaser.Scene {
       this.muteBtn.setText(this.muted ? 'MUTE' : 'SND');
     });
 
-    // Mission display (bottom-left)
+    // Mission display (bottom-left, within ENVELOP-safe zone)
     this.missionTexts = [];
     for (let i = 0; i < 3; i++) {
-      const mt = this.add.text(8, 190 - i * 9, '', {
+      const mt = this.add.text(8, 180 - i * 9, '', {
         fontFamily: '"Press Start 2P"',
         fontSize: '4px',
         color: '#aaaaaa',
