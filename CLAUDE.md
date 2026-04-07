@@ -11,9 +11,12 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - **Deploy:** GitHub Pages at https://bigknoxy.github.io/TurboHop/
 
 ## Key Architecture
-- `src/scenes/` — Phaser scenes (BootScene, MenuScene, GameScene, UIScene, GameOverScene, ShopScene, UpgradeScene, SettingsScene)
+- `src/scenes/` — Phaser scenes (BootScene, MenuScene, GameScene, UIScene, GameOverScene, ShopScene, UpgradeScene, SettingsScene, **LeaderboardScene**)
 - `src/entities/` — Player entity with component system
-- `src/systems/` — Game systems (Audio, Score, Difficulty, Spawn, Mission, PowerUp, Save, Settings, InstallManager, DailyReward, Upgrade)
+- `src/systems/` — Game systems (Audio, Score, Difficulty, Spawn, Mission, PowerUp, Save, Settings, InstallManager, DailyReward, Upgrade, **AnalyticsSystem**, **RemoteConfigSystem**, **DailyChallengeSystem**)
+- `src/components/` — UI components (**DailyChallengeBanner**)
+- `src/services/` — Backend services (**FirebaseService**)
+- `src/interfaces/` — Type definitions (**IBackendService**)
 - `src/factories/` — Platform and enemy factories with object pooling
 - `src/utils/` — ButtonHelper, TransitionHelper, EventBus
 - `src/constants.ts` — Game dimensions (384x216), physics constants

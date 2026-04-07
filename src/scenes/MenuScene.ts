@@ -6,6 +6,9 @@ import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSyst
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
 import { makeButton } from '../utils/ButtonHelper';
 import { InstallManager } from '../systems/InstallManager';
+import { RemoteConfigSystem } from '../systems/RemoteConfigSystem';
+import { DailyChallengeSystem } from '../systems/DailyChallengeSystem';
+import { DailyChallengeBanner } from '../components/DailyChallengeBanner';
 
 export class MenuScene extends Phaser.Scene {
   private titleText!: Phaser.GameObjects.Text;
@@ -14,12 +17,13 @@ export class MenuScene extends Phaser.Scene {
   private canStart = true;
   private bannerElements: Phaser.GameObjects.GameObject[] = [];
   private bannerDelay: Phaser.Time.TimerEvent | null = null;
+  private dailyChallengeBanner: DailyChallengeBanner | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
   }
 
-  create() {
+  async create() {
     this.canStart = true;
     this.bannerElements = [];
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'bg-sky');
@@ -68,6 +72,13 @@ export class MenuScene extends Phaser.Scene {
       fadeOut(this, 200, () => this.scene.start('UpgradeScene'));
     });
 
+    // Leaderboard button
+    makeButton(this, GAME_WIDTH / 2, GAME_HEIGHT - 18, 'LEADERBOARD', {
+      fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#44aaff',
+    }, () => {
+      fadeOut(this, 200, () => this.scene.start('LeaderboardScene'));
+    });
+
     // Version
     this.add.text(GAME_WIDTH - 4, GAME_HEIGHT - 4, `v${version}`, {
       fontFamily: '"Press Start 2P"',
@@ -89,6 +100,16 @@ export class MenuScene extends Phaser.Scene {
     } else if (InstallManager.shouldShowBanner()) {
       // Show install banner (after daily reward check, so they don't overlap)
       this.bannerDelay = this.time.delayedCall(500, () => this.showInstallBanner());
+    }
+
+    // Show daily challenge banner
+    const remoteConfig = new RemoteConfigSystem();
+    const dailyChallengeSystem = new DailyChallengeSystem(remoteConfig);
+    if (dailyChallengeSystem.isEnabled()) {
+      this.dailyChallengeBanner = new DailyChallengeBanner(this, dailyChallengeSystem);
+      this.dailyChallengeBanner.show().catch((error) => {
+        console.warn('[MenuScene] Failed to show daily challenge:', error);
+      });
     }
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -150,6 +171,10 @@ export class MenuScene extends Phaser.Scene {
   private dismissBanner(): void {
     this.bannerElements.forEach(el => el.destroy());
     this.bannerElements = [];
+    if (this.dailyChallengeBanner) {
+      this.dailyChallengeBanner.dismiss();
+      this.dailyChallengeBanner = null;
+    }
     this.canStart = true;
   }
 
@@ -192,6 +217,10 @@ export class MenuScene extends Phaser.Scene {
 
   private startGame() {
     if (this.bannerDelay) this.bannerDelay.destroy();
+    if (this.dailyChallengeBanner) {
+      this.dailyChallengeBanner.destroy();
+      this.dailyChallengeBanner = null;
+    }
     fadeOut(this, 200, () => {
       this.scene.start('GameScene');
       this.scene.launch('UIScene');

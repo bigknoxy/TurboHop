@@ -1,6 +1,6 @@
 # TurboHop
 
-![Version](https://img.shields.io/badge/version-v0.5.3-blue)
+![Version](https://img.shields.io/badge/version-v0.6.0--dev-blue)
 ![Phaser 3](https://img.shields.io/badge/Phaser-3.80-green)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![Vite](https://img.shields.io/badge/Vite-5.x-purple)
@@ -28,6 +28,9 @@ A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite +
 - **Install as app** — PWA support for fullscreen mobile play, no browser chrome
 - **Gamepad support** — A button to jump
 - **Accessibility** — Reduced motion mode, colorblind mode, settings scene
+- **Daily challenges** — New seed-based challenge every 24h with unique leaderboards
+- **Global leaderboards** — Compete with players worldwide, see top 100 rankings
+- **Analytics** — Automatic gameplay tracking for balance tuning
 
 ## Tech Stack
 
@@ -47,12 +50,13 @@ Entity-Component pattern with SOLID principles:
 src/
 ├── main.ts               # Phaser game config + bootstrap
 ├── constants.ts           # Game constants (gravity, speed, dimensions)
-├── scenes/                # Phaser scenes (Boot, Menu, Game, UI, GameOver, Shop, Upgrade, Settings)
+├── scenes/                # Phaser scenes (Boot, Menu, Game, UI, GameOver, Shop, Upgrade, Settings, **Leaderboard**)
 ├── entities/              # Entity base class + Player
-├── components/            # Reusable behaviors (JumpComponent)
-├── systems/               # Game logic (Difficulty, Spawn, Score, Save, Audio, Mission, PowerUp, Upgrade, DailyReward, Settings, InstallManager)
+├── components/            # Reusable behaviors (JumpComponent, **DailyChallengeBanner**)
+├── systems/               # Game logic (Difficulty, Spawn, Score, Save, Audio, Mission, PowerUp, Upgrade, DailyReward, Settings, InstallManager, **Analytics, RemoteConfig, DailyChallenge**)
+├── services/              # Backend integration (**FirebaseService**)
+├── interfaces/            # TypeScript contracts (IEntity, IComponent, ISystem, **IBackendService**)
 ├── factories/             # Object creation (PlatformFactory, EnemyFactory)
-├── interfaces/            # TypeScript contracts (IEntity, IComponent, ISystem)
 ├── __tests__/             # Unit tests (Vitest + jsdom)
 └── utils/                 # EventBus, ButtonHelper, TransitionHelper
 ```

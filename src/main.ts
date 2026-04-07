@@ -8,6 +8,7 @@ import { GameOverScene } from './scenes/GameOverScene';
 import { ShopScene } from './scenes/ShopScene';
 import { UpgradeScene } from './scenes/UpgradeScene';
 import { SettingsScene } from './scenes/SettingsScene';
+import { LeaderboardScene } from './scenes/LeaderboardScene';
 import './systems/InstallManager'; // Initialize early to capture beforeinstallprompt
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -27,7 +28,7 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.ENVELOP,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, MenuScene, GameScene, UIScene, GameOverScene, ShopScene, UpgradeScene, SettingsScene],
+  scene: [BootScene, MenuScene, GameScene, UIScene, GameOverScene, ShopScene, UpgradeScene, SettingsScene, LeaderboardScene],
   input: { gamepad: true },
   backgroundColor: '#1a1a2e',
 };
