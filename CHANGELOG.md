@@ -3,6 +3,11 @@
 
 ## [v0.6.0] - 2026-04-07
 
+- feat: Phase 1 social features - Daily Challenges, Leaderboards, Analytics (#8) (d3beabf)
+
+
+## [v0.6.0] - 2026-04-07
+
 ### Phase 1: Social Competition Platform
 
 **Milestone 1: Foundation**
