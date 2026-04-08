@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.7.3] - 2026-04-08
+
+- fix: revert to FIREBASE_TOKEN auth (f9ca3f0)
+
+
 ## [v0.7.2] - 2026-04-08
 
 - fix: use service account auth instead of deprecated token (00e7d9e)
