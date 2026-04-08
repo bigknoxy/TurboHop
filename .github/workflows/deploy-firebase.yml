@@ -42,7 +42,7 @@ jobs:
       - name: Deploy to Firebase Hosting
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase deploy --only hosting --token "$FIREBASE_TOKEN"
+        run: firebase deploy --only hosting --token "$FIREBASE_TOKEN" --project turbohop-game
 
   auto-version:
     runs-on: ubuntu-latest
