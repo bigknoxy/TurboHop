@@ -9,7 +9,7 @@ A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite +
 
 ## Play
 
-**[Play TurboHop](https://bigknoxy.github.io/TurboHop/)** (GitHub Pages)
+**[Production](https://turbohop-game.web.app/)** (Firebase Hosting) | **[Staging](https://bigknoxy.github.io/TurboHop/)** (GitHub Pages)
 
 ## Gameplay
 
@@ -40,7 +40,8 @@ A SNES-style 16-bit endless platformer built with Phaser 3 + TypeScript + Vite +
 | Language | TypeScript (strict) |
 | Build Tool | Vite |
 | Package Manager | Bun |
-| Deployment | GitHub Pages via GitHub Actions |
+| Backend | Firebase (Firestore, Auth, Remote Config, Analytics) |
+| Deployment | Firebase Hosting (prod) + GitHub Pages (staging) |
 
 ## Architecture
 
@@ -111,29 +112,47 @@ bun run preview
 | Tile Size | 16x16px |
 | Player Size | 16x24px |
 | Font | Press Start 2P |
-| Scaling | ENVELOP (fills entire screen, crops overflow) |
+| Scaling | FIT (letterboxing, preserves full canvas on all aspect ratios) |
 | Effects | CRT scanlines, parallax backgrounds, screen shake, particle effects, vignette |
 | PWA | Installable, landscape orientation lock, standalone display mode |
 
 ## CI/CD
 
-### Automated Deployment
-Every push to `main` triggers a GitHub Actions workflow that builds and deploys to GitHub Pages.
+### Deployment Workflow
+
+```
+push to main → GitHub Pages (staging, auto) → manual approval → Firebase (production, auto + versioning)
+```
+
+1. **Staging (Auto-deploy):** Every push to `main` automatically deploys to GitHub Pages for testing
+2. **Production (Manual approval):** After verifying staging, approve the `deploy-firebase` workflow to deploy to Firebase Hosting
+3. **Auto-versioning:** Production deploys automatically bump version, update changelog, and create GitHub Release
 
 ### Automated Versioning
-Merges to `main` are automatically versioned using conventional commits:
+Production deploys are automatically versioned using conventional commits:
 - `feat:` commits bump the **minor** version
 - `fix:` / `perf:` / `refactor:` commits bump the **patch** version
 - `BREAKING CHANGE` / `feat!:` commits bump the **major** version
 
-Each release automatically:
+Each production release automatically:
 - Updates `package.json` version
 - Updates `CHANGELOG.md`
 - Creates a Git tag and GitHub Release
 
 ### Setup (one-time)
+
+**GitHub Pages (Staging):**
 1. Go to **Settings → Pages → Source** and select **"GitHub Actions"**
-2. That's it — merging PRs will auto-deploy and auto-version
+
+**Firebase (Production):**
+1. Install Firebase CLI: `npm install -g firebase-tools`
+2. Generate CI token: `firebase login:ci`
+3. Add token to GitHub Secrets: **Settings → Secrets → Actions → New repository secret**
+   - Name: `FIREBASE_TOKEN`
+   - Value: (token from step 2)
+4. Create environment: **Settings → Environments → New environment**
+   - Name: `firebase-production`
+   - Required reviewers: Add yourself
 
 ## License
 

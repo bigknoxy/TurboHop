@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:firebase": "tsc && vite build",
+    "build:github": "BASE_PATH=/TurboHop/ tsc && BASE_PATH=/TurboHop/ vite build",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:firebase": "firebase deploy --only hosting"
   },
   "dependencies": {
     "firebase": "^12.11.0",

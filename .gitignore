@@ -5,3 +5,4 @@ bun.lockb
 *.local
 screenshots/
 test-screens.cjs
+.gstack/
