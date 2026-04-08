@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.7.2] - 2026-04-08
+
+- fix: use service account auth instead of deprecated token (00e7d9e)
+
+
 ## [v0.7.1] - 2026-04-08
 
 - fix: add --project flag to firebase deploy command (4d7e1e6)
