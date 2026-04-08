@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.7.1] - 2026-04-08
+
+- fix: add --project flag to firebase deploy command (4d7e1e6)
+
+
 ## [v0.7.0] - 2026-04-08
 
 - feat: dual deploy workflow (GitHub Pages staging → Firebase prod) (17a8ae6)
