@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.7.0] - 2026-04-08
+
+- feat: dual deploy workflow (GitHub Pages staging → Firebase prod) (17a8ae6)
+
+
 ## [v0.6.0] - 2026-04-07
 
 - feat: Phase 1 social features - Daily Challenges, Leaderboards, Analytics (#8) (d3beabf)
