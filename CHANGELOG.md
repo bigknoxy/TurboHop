@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.7.4] - 2026-04-09
+
+- fix: use service account auth for Firebase deploy (a4c8058)
+
+
 ## [v0.7.3] - 2026-04-08
 
 - fix: revert to FIREBASE_TOKEN auth (f9ca3f0)
