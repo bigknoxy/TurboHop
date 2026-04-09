@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
-import { makeButton } from '../utils/ButtonHelper';
+import { expandHitArea, makeButton } from '../utils/ButtonHelper';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
 import { DailyChallengeSystem } from '../systems/DailyChallengeSystem';
 import { FirebaseService } from '../services/FirebaseService';
@@ -138,7 +138,8 @@ export class LeaderboardScene extends Phaser.Scene {
       fontFamily: '"Press Start 2P"',
       fontSize: '7px',
       color: '#44aaff',
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5);
+    expandHitArea(retryBtn);
 
     retryBtn.on('pointerdown', () => {
       this.scene.restart();

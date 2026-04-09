@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { SettingsSystem } from '../systems/SettingsSystem';
-import { makeButton } from '../utils/ButtonHelper';
+import { expandHitArea, makeButton } from '../utils/ButtonHelper';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
 import { InstallManager } from '../systems/InstallManager';
 
@@ -41,7 +41,8 @@ export class SettingsScene extends Phaser.Scene {
         fontFamily: '"Press Start 2P"',
         fontSize: '7px',
         color: state ? '#44ff44' : '#ff4444',
-      }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+      }).setOrigin(1, 0);
+      expandHitArea(btn);
 
       btn.on('pointerover', () => btn.setScale(1.1));
       btn.on('pointerout', () => btn.setScale(1.0));

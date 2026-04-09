@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { SaveSystem } from '../systems/SaveSystem';
 import { UpgradeSystem, UPGRADES } from '../systems/UpgradeSystem';
-import { makeButton } from '../utils/ButtonHelper';
+import { expandHitArea, makeButton } from '../utils/ButtonHelper';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
 
 export class UpgradeScene extends Phaser.Scene {
@@ -86,8 +86,8 @@ export class UpgradeScene extends Phaser.Scene {
           fontSize: '6px',
           color: btnColor,
         })
-        .setOrigin(1, 0)
-        .setInteractive({ useHandCursor: true });
+        .setOrigin(1, 0);
+      expandHitArea(btn);
 
       btn.on('pointerdown', () => {
         if (maxed) return;

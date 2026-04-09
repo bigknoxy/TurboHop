@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
-import { makeButton } from '../utils/ButtonHelper';
+import { expandHitArea, makeButton } from '../utils/ButtonHelper';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
 
 interface SkinData {
@@ -102,8 +102,8 @@ export class ShopScene extends Phaser.Scene {
           fontSize: '4px',
           color: btnColor,
         })
-        .setOrigin(1, 0)
-        .setInteractive({ useHandCursor: true });
+        .setOrigin(1, 0);
+      expandHitArea(btn, 8, 6);
 
       btn.on('pointerdown', () => {
         if (equipped) return;

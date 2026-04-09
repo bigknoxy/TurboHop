@@ -4,7 +4,7 @@ import { version } from '../../package.json';
 import { SaveSystem } from '../systems/SaveSystem';
 import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSystem';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
-import { makeButton } from '../utils/ButtonHelper';
+import { expandHitArea, makeButton } from '../utils/ButtonHelper';
 import { InstallManager } from '../systems/InstallManager';
 import { RemoteConfigSystem } from '../systems/RemoteConfigSystem';
 import { DailyChallengeSystem } from '../systems/DailyChallengeSystem';
@@ -204,7 +204,8 @@ export class MenuScene extends Phaser.Scene {
       fontFamily: '"Press Start 2P"',
       fontSize: '8px',
       color: '#44ff44',
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5);
+    expandHitArea(claimBtn);
 
     claimBtn.on('pointerdown', () => {
       dailySystem.claim(result);
