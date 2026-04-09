@@ -41,8 +41,11 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase deploy --only hosting --token "$FIREBASE_TOKEN" --project turbohop-game --non-interactive
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS" > /tmp/service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/service-account.json
+          firebase deploy --only hosting --project turbohop-game --non-interactive
 
   auto-version:
     runs-on: ubuntu-latest
