@@ -108,11 +108,11 @@ bun run preview
 
 | Element | Spec |
 |---|---|
-| Resolution | 384x216 (16:9 SNES-like), scaled up |
+| Resolution | 216px logical height; width adapts per device (320–640) for true fullscreen on 16:9 → 21:9 |
 | Tile Size | 16x16px |
 | Player Size | 16x24px |
 | Font | Press Start 2P |
-| Scaling | FIT (letterboxing, preserves full canvas on all aspect ratios) |
+| Scaling | FIT with per-device canvas width so modern 19:9 / 20:9 phones fill edge-to-edge with no black bars |
 | Effects | CRT scanlines, parallax backgrounds, screen shake, particle effects, vignette |
 | PWA | Installable, landscape orientation lock, standalone display mode |
 

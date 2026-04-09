@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH } from '../constants';
 import { EventBus } from '../utils/EventBus';
 import { Mission } from '../systems/MissionSystem';
+import { expandHitArea } from '../utils/ButtonHelper';
 
 export class UIScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
@@ -55,8 +56,8 @@ export class UIScene extends Phaser.Scene {
         fontSize: '5px',
         color: '#888888',
       })
-      .setOrigin(1, 0)
-      .setInteractive({ useHandCursor: true });
+      .setOrigin(1, 0);
+    expandHitArea(this.muteBtn);
 
     this.muteBtn.on('pointerdown', () => {
       this.muted = !this.muted;

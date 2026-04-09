@@ -20,7 +20,7 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - `src/interfaces/` — Type definitions (**IBackendService**)
 - `src/factories/` — Platform and enemy factories with object pooling
 - `src/utils/` — ButtonHelper, TransitionHelper, EventBus
-- `src/constants.ts` — Game dimensions (384x216), physics constants
+- `src/constants.ts` — Fixed logical height `GAME_HEIGHT=216`, dynamic `GAME_WIDTH` computed per device via `initGameSize()`, clamped to `[MIN_GAME_WIDTH, MAX_GAME_WIDTH]`, plus physics constants
 
 ## Commands
 - `bun run build` — TypeScript check + Vite production build (Firebase)
@@ -35,6 +35,8 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - **Object Pooling** — Enemies and coins reuse inactive sprites via factory groups.
 - **PWA** — manifest.json in public/, InstallManager singleton captures beforeinstallprompt.
 - **Scene Lifecycle** — GameScene registers shutdown handler. UIScene runs in parallel via `scene.launch()`.
+- **Dynamic canvas width** — `GAME_WIDTH` is an `export let` in `constants.ts` that is set by `initGameSize()` in `main.ts` *before* `new Phaser.Game()`. It matches the device aspect ratio (e.g. ~480 on a 20:9 phone, 384 on a 16:9 desktop) so Phaser's FIT mode fills the viewport with zero letterboxing. Scenes must read `GAME_WIDTH` *inside* `create()`/`update()` (live binding) — never destructure it at module scope.
+- **Tap target padding** — Pixel-art buttons are only ~6px tall. `makeButton` and the `expandHitArea(text)` helper in `utils/ButtonHelper.ts` apply a 12×10 logical-pixel hit-area pad so small labels remain tappable after the FIT scale chain.
 
 ## Common Pitfalls
 - Don't use `time.timeScale` — it affects all timers globally. Use camera effects instead.
@@ -42,7 +44,9 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - `EventBus.removeAllListeners()` in GameScene.create() nukes all listeners — systems must re-register.
 - Ghost enemies must disable their physics body during invisible phase.
 - Enemy sprites are pooled — body size must be updated when texture changes on reuse.
-- **FIT scale mode adds letterboxing** — black bars on ultra-wide screens to preserve full canvas. All UI elements visible within canvas bounds.
+- **FIT scale mode with dynamic width** — `GAME_WIDTH` is computed per viewport at boot so FIT fills the screen without letterboxing on modern 19:9/20:9 phones. Layout code uses proportional positions (`GAME_WIDTH/2`, `GAME_WIDTH*3/4`) or right-anchored offsets (`GAME_WIDTH - N`) so it adapts to any canvas width between `MIN_GAME_WIDTH` and `MAX_GAME_WIDTH`. Don't hardcode pixel positions past 320 from the left.
+- **Never read `GAME_WIDTH` at module scope** — `const X = GAME_WIDTH / 2;` at the top of a file captures the pre-init default of 384. Read it inside scene methods so live binding works.
+- **Don't place UI at y ∈ [45..95]** in MenuScene — that slice is reserved for the Daily Challenge banner (centered at y=108 with a 56px-tall panel). Any element in that range gets covered by the banner.
 
 ## PR Workflow Rules
 - **Always check if a PR is already merged/closed** before pushing to its branch or updating it. Check the PR state via the GitHub API. If merged, create a new branch from main and a new PR.

@@ -9,6 +9,7 @@
   <link rel="manifest" href="%BASE_URL%manifest.json" />
   <meta name="theme-color" content="#1a1a2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="TurboHop" />
   <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-192.svg" />
@@ -19,17 +20,46 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      width: 100%;
-      height: 100%;
-      background: #000;
+      /* Fill the full viewport including under notches / display cutouts. */
+      width: 100vw;
+      height: 100vh;
+      /* Theme-colored background so any residual letterbox pixel (rounding,
+         desktop windowed resize) blends into the game's palette instead of
+         flashing black bars. */
+      background: #1a1a2e;
       overflow: hidden;
       touch-action: none;
+      overscroll-behavior: none;
+      /* Prevent iOS from showing a tap highlight or text selection caret on
+         the game canvas. */
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
     #game {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      /* Use dynamic viewport height where supported so mobile browser chrome
+         collapsing / expanding doesn't shrink the canvas. Falls back to vh. */
+      height: 100vh;
+      height: 100dvh;
+      /* Respect display cutouts on devices with notches/punch-holes. */
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
       image-rendering: pixelated;
       image-rendering: crisp-edges;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Phaser injects a <canvas> inside #game — make sure it can never
+       overflow the container and keeps pixel-perfect upscaling. */
+    #game canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
     }
   </style>
 </head>
