@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.7.5] - 2026-04-09
+
+- fix: make PWA truly fullscreen on modern phones, polish menu UI (#11) (8dbc937)
+
+
 ## [v0.7.4] - 2026-04-09
 
 - fix: use service account auth for Firebase deploy (a4c8058)
