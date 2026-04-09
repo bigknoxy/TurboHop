@@ -14,50 +14,50 @@
   <meta name="apple-mobile-web-app-title" content="TurboHop" />
   <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-192.svg" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <!-- Font is self-hosted via @fontsource/press-start-2p, imported in
+       main.ts and bundled by Vite. No Google Fonts CDN dependency. -->
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      /* Fill the full viewport including under notches / display cutouts. */
-      width: 100vw;
-      height: 100vh;
-      /* Theme-colored background so any residual letterbox pixel (rounding,
-         desktop windowed resize) blends into the game's palette instead of
-         flashing black bars. */
+      width: 100%;
+      height: 100%;
+      /* Theme-colored so any <1px rounding gap blends into the game palette
+         instead of flashing black bars on the edges. */
       background: #1a1a2e;
       overflow: hidden;
       touch-action: none;
       overscroll-behavior: none;
-      /* Prevent iOS from showing a tap highlight or text selection caret on
-         the game canvas. */
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
     }
+    /* The Phaser parent must be a plain block that exactly matches the
+       visual viewport. Do NOT add flexbox centering or padding here —
+       Phaser's `autoCenter: CENTER_BOTH` handles canvas positioning by
+       setting `margin-top` on the <canvas> directly. Any flex/grid
+       centering on this container would stack with Phaser's margin and
+       produce asymmetric letterbox bars (top gap ≠ bottom gap), which is
+       exactly the bug the post-merge Pixel 9a screenshot revealed. */
     #game {
+      position: fixed;
+      inset: 0;
+      /* Dynamic viewport height so collapsing/expanding mobile browser
+         chrome (URL bar, nav gestures) doesn't shrink the canvas. The
+         static 100vh fallback catches browsers that don't support dvh. */
       width: 100vw;
-      /* Use dynamic viewport height where supported so mobile browser chrome
-         collapsing / expanding doesn't shrink the canvas. Falls back to vh. */
       height: 100vh;
       height: 100dvh;
-      /* Respect display cutouts on devices with notches/punch-holes. */
-      padding: env(safe-area-inset-top) env(safe-area-inset-right)
-               env(safe-area-inset-bottom) env(safe-area-inset-left);
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      overflow: hidden;
+      background: #1a1a2e;
     }
-    /* Phaser injects a <canvas> inside #game — make sure it can never
-       overflow the container and keeps pixel-perfect upscaling. */
     #game canvas {
+      display: block;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
-      display: block;
+      /* Defensive: cap the canvas so it can never spill past the parent
+         even if a browser quirk adds a scrollbar or inset we didn't
+         anticipate. Phaser still controls the actual pixel dimensions. */
       max-width: 100%;
       max-height: 100%;
     }

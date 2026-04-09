@@ -13,10 +13,12 @@
 export let GAME_WIDTH = 384;
 export const GAME_HEIGHT = 216;
 
-// Layout-safe bounds for GAME_WIDTH. 320 keeps the 280px daily challenge
-// banner from spilling off 4:3 tablets; 640 prevents ultra-wide foldables or
-// desktop browsers from stretching the playfield into a too-zoomed-out view.
-export const MIN_GAME_WIDTH = 320;
+// Layout-safe bounds for GAME_WIDTH. 256 covers everything down to a 4:3
+// iPad (needs ~288) with margin for narrower aspect ratios; 640 prevents
+// ultra-wide foldables or desktop browsers from stretching the playfield
+// into a too-zoomed-out view. The Daily Challenge banner clamps its own
+// width to (GAME_WIDTH - 16) so it always fits regardless of device.
+export const MIN_GAME_WIDTH = 256;
 export const MAX_GAME_WIDTH = 640;
 
 export const TILE_SIZE = 16;
