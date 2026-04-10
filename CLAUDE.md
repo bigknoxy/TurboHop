@@ -61,6 +61,7 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 - **Production (Manual approval):** After testing staging, approve `deploy-firebase` workflow → Firebase Hosting + auto-versioning
 - **FIREBASE_TOKEN:** Required in GitHub Secrets for production deploys (generate with `firebase login:ci`)
 - **Environment protection:** `firebase-production` environment requires manual approval before deploy
+- **Post-merge verification:** On every push/merge to `main`, run the e2e suite against the staging environment to catch regressions before approving production deploy: `TURBOHOP_URL=https://bigknoxy.github.io/TurboHop/ PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers node e2e/flows.mjs`
 
 ## Documentation Rules
 Before every PR, check and update all documentation to reflect the changes being made:

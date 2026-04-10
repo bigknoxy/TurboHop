@@ -13,6 +13,14 @@ interface GameOverData {
   missions: Mission[];
 }
 
+// Shared text style helper — DRY the fontFamily boilerplate.
+const F = (size: number, color: string, stroke = false) => ({
+  fontFamily: '"Press Start 2P"',
+  fontSize: `${size}px`,
+  color,
+  ...(stroke ? { stroke: '#000000', strokeThickness: 3 } : {}),
+});
+
 export class GameOverScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GameOverScene' });
@@ -31,111 +39,79 @@ export class GameOverScene extends Phaser.Scene {
     }
 
     this.scene.stop('UIScene');
-
-    // Track games played for install prompt
     InstallManager.incrementGamesPlayed();
 
-    this.add.rectangle(
-      GAME_WIDTH / 2, GAME_HEIGHT / 2,
-      GAME_WIDTH, GAME_HEIGHT,
-      0x000000, 0.7,
-    ).setOrigin(0.5);
+    const cx = GAME_WIDTH / 2;
 
-    this.add.text(GAME_WIDTH / 2, 20, 'GAME OVER', {
-      fontFamily: '"Press Start 2P"',
-      fontSize: '16px',
-      color: '#ff4444',
-      stroke: '#000000',
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    // Dark overlay
+    this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.75);
 
-    this.add.text(GAME_WIDTH / 2, 50, `SCORE: ${data.score}`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: '10px',
-      color: '#ffffff',
-    }).setOrigin(0.5);
+    // ---- Title region ----
+    this.add.text(cx, 28, 'GAME OVER', F(16, '#ff4444', true)).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 66, `BEST: ${data.highScore}`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: '7px',
-      color: '#ffdd00',
-    }).setOrigin(0.5);
+    // ---- Score block — vertically centered in the upper-middle ----
+    this.add.text(cx, 58, `SCORE: ${data.score}`, F(12, '#ffffff')).setOrigin(0.5);
+    this.add.text(cx, 78, `BEST: ${data.highScore}`, F(7, '#ffdd00')).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 80, `COINS: ${data.coins}  STOMPS: ${data.stomps}`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: '6px',
-      color: '#ffdd00',
-    }).setOrigin(0.5);
+    // Thin separator
+    const sepW = 120;
+    this.add.rectangle(cx, 90, sepW, 1, 0xffffff, 0.15);
 
-    // Mission results
+    this.add.text(cx, 100, `COINS: ${data.coins}`, F(6, '#ffdd00')).setOrigin(0.5);
+    this.add.text(cx, 112, `STOMPS: ${data.stomps}`, F(6, '#ffdd00')).setOrigin(0.5);
+
+    // ---- Mission results ----
+    let nextY = 124;
     if (data.missions && data.missions.length > 0) {
-      let missionY = 94;
-      const completedMissions = data.missions.filter((m) => m.completed);
-      if (completedMissions.length > 0) {
-        this.add.text(GAME_WIDTH / 2, missionY, 'MISSIONS COMPLETED:', {
-          fontFamily: '"Press Start 2P"',
-          fontSize: '5px',
-          color: '#44ff44',
-        }).setOrigin(0.5);
-        missionY += 10;
-        completedMissions.forEach((m) => {
-          this.add.text(GAME_WIDTH / 2, missionY, `${m.description} +${m.reward}C`, {
-            fontFamily: '"Press Start 2P"',
-            fontSize: '4px',
-            color: '#44ff44',
-          }).setOrigin(0.5);
-          missionY += 8;
+      const completed = data.missions.filter((m) => m.completed);
+      if (completed.length > 0) {
+        this.add.text(cx, nextY, 'MISSIONS:', F(5, '#44ff44')).setOrigin(0.5);
+        nextY += 10;
+        completed.forEach((m) => {
+          this.add.text(cx, nextY, `${m.description} +${m.reward}C`, F(5, '#44ff44')).setOrigin(0.5);
+          nextY += 9;
         });
       }
-
       if (data.bonusCoins > 0) {
-        this.add.text(GAME_WIDTH / 2, missionY + 2, `BONUS: +${data.bonusCoins} COINS`, {
-          fontFamily: '"Press Start 2P"',
-          fontSize: '6px',
-          color: '#ffdd00',
-        }).setOrigin(0.5);
+        this.add.text(cx, nextY + 2, `BONUS: +${data.bonusCoins} COINS`, F(6, '#ffdd00')).setOrigin(0.5);
       }
     }
 
-    // Retry button (primary)
-    makeButton(this, GAME_WIDTH / 2, 150, 'TAP TO RETRY', {
-      fontFamily: '"Press Start 2P"', fontSize: '10px', color: '#44ff44',
-    }, () => this.retry());
+    // ---- Primary action ----
+    makeButton(this, cx, 160, 'TAP TO RETRY', F(10, '#44ff44'), () => this.retry());
 
-    // Bottom row: HOME, SHARE, SHOP, UPGRADES (y=168 keeps within ENVELOP-safe zone)
-    const btnStyle = { fontFamily: '"Press Start 2P"', fontSize: '6px' };
-    const btnY = 168;
+    // ---- Bottom nav — evenly spaced across the width ----
+    const navY = 190;
+    const cols = 4;
+    const pad = GAME_WIDTH * 0.08; // 8% margin on each side
+    const step = (GAME_WIDTH - pad * 2) / (cols - 1);
+    const navStyle = { fontFamily: '"Press Start 2P"', fontSize: '7px' };
 
-    makeButton(this, GAME_WIDTH * 1 / 5, btnY, 'HOME', {
-      ...btnStyle, color: '#aaaaaa',
-    }, () => {
+    makeButton(this, pad, navY, 'HOME', { ...navStyle, color: '#aaaaaa' }, () => {
       this.scene.stop('GameScene');
       this.scene.start('MenuScene');
     });
 
-    const shareBtn = makeButton(this, GAME_WIDTH * 2 / 5, btnY, 'SHARE', {
-      ...btnStyle, color: '#ff88ff',
-    }, () => {
-      const shareMsg = `I scored ${data.score} on TurboHop! Stomped ${data.stomps} enemies and collected ${data.coins} coins. Can you beat me? https://bigknoxy.github.io/TurboHop/`;
+    const shareBtn = makeButton(this, pad + step, navY, 'SHARE', { ...navStyle, color: '#ff88ff' }, () => {
+      const msg = `I scored ${data.score} on TurboHop! Can you beat me? https://bigknoxy.github.io/TurboHop/`;
       if (navigator.share) {
-        navigator.share({ title: 'TurboHop', text: shareMsg }).catch(() => {});
+        navigator.share({ title: 'TurboHop', text: msg }).catch(() => {});
       } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(shareMsg).then(() => {
+        navigator.clipboard.writeText(msg).then(() => {
           shareBtn.setText('COPIED!');
           this.time.delayedCall(1500, () => shareBtn.setText('SHARE'));
         }).catch(() => {});
       }
     });
 
-    makeButton(this, GAME_WIDTH * 3 / 5, btnY, 'SHOP', {
-      ...btnStyle, color: '#44aaff',
-    }, () => this.scene.start('ShopScene', { from: 'GameOverScene' }));
+    makeButton(this, pad + step * 2, navY, 'SHOP', { ...navStyle, color: '#44aaff' }, () =>
+      this.scene.start('ShopScene', { from: 'GameOverScene' }),
+    );
 
-    makeButton(this, GAME_WIDTH * 4 / 5, btnY, 'UPGRADES', {
-      ...btnStyle, color: '#ffaa44',
-    }, () => this.scene.start('UpgradeScene', { from: 'GameOverScene' }));
+    makeButton(this, pad + step * 3, navY, 'UPGRADES', { ...navStyle, color: '#ffaa44' }, () =>
+      this.scene.start('UpgradeScene', { from: 'GameOverScene' }),
+    );
 
-    // Keyboard retry
     this.input.keyboard?.once('keydown-SPACE', () => this.retry());
   }
 
