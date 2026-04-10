@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.7.6] - 2026-04-10
+
+- fix: PWA fullscreen polish — eliminate letterbox, self-host font, add e2e (#12) (76b15b3)
+
+
 ## [v0.7.5] - 2026-04-09
 
 - fix: make PWA truly fullscreen on modern phones, polish menu UI (#11) (8dbc937)
