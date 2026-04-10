@@ -12,62 +12,57 @@ export class UpgradeScene extends Phaser.Scene {
 
   create(data?: { from?: string }) {
     const returnScene = data?.from || 'MenuScene';
+    const cx = GAME_WIDTH / 2;
 
-    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x1a1a2e);
+    this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x1a1a2e);
 
-    this.add
-      .text(GAME_WIDTH / 2, 20, 'UPGRADES', {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '12px',
-        color: '#ffaa44',
-        stroke: '#000000',
-        strokeThickness: 3,
-      })
-      .setOrigin(0.5);
+    // ---- Header ----
+    this.add.text(cx, 16, 'UPGRADES', {
+      fontFamily: '"Press Start 2P"', fontSize: '12px', color: '#ffaa44',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5);
 
     const saveSystem = new SaveSystem();
     const upgradeSystem = new UpgradeSystem(saveSystem);
     const totalCoins = saveSystem.getCoins();
 
-    this.add
-      .text(GAME_WIDTH / 2, 36, `COINS: ${totalCoins}`, {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '7px',
-        color: '#ffdd00',
-      })
-      .setOrigin(0.5);
+    this.add.text(cx, 32, `COINS: ${totalCoins}`, {
+      fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#ffdd00',
+    }).setOrigin(0.5);
+
+    // Thin divider under header
+    this.add.rectangle(cx, 42, GAME_WIDTH - 40, 1, 0xffffff, 0.1);
+
+    // ---- Upgrade rows ----
+    const startY = 50;
+    const rowH = 28;
+    const leftPad = 14;
 
     UPGRADES.forEach((def, i) => {
-      const y = 52 + i * 26;
+      const y = startY + i * rowH;
       const level = upgradeSystem.getLevel(def.id);
       const maxed = level >= def.maxLevel;
 
-      // Name
-      this.add.text(10, y, def.name, {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '6px',
-        color: '#ffffff',
+      // Upgrade name (larger, readable)
+      this.add.text(leftPad, y, def.name, {
+        fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#ffffff',
       });
 
-      // Description
-      this.add.text(10, y + 9, def.description, {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '4px',
-        color: '#888888',
+      // Description (bumped from 4px to 5px for readability)
+      this.add.text(leftPad, y + 11, def.description, {
+        fontFamily: '"Press Start 2P"', fontSize: '5px', color: '#777777',
       });
 
-      // Level indicator
-      let levelStr = '';
+      // Level pips — graphical boxes instead of text brackets
+      const pipX = GAME_WIDTH - 100;
       for (let l = 0; l < def.maxLevel; l++) {
-        levelStr += l < level ? '[X]' : '[ ]';
+        const filled = l < level;
+        const pipColor = filled ? 0x44ff44 : 0x333333;
+        this.add.rectangle(pipX + l * 12, y + 4, 8, 8, pipColor)
+          .setStrokeStyle(1, filled ? 0x66ff66 : 0x555555);
       }
-      this.add.text(GAME_WIDTH - 120, y, levelStr, {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '5px',
-        color: level > 0 ? '#44ff44' : '#666666',
-      });
 
-      // Buy button
+      // Buy / MAX button
       let btnText: string;
       let btnColor: string;
       if (maxed) {
@@ -75,18 +70,13 @@ export class UpgradeScene extends Phaser.Scene {
         btnColor = '#44ff44';
       } else {
         const cost = def.costs[level];
-        const canAfford = totalCoins >= cost;
         btnText = `${cost}C`;
-        btnColor = canAfford ? '#ffdd00' : '#666666';
+        btnColor = totalCoins >= cost ? '#ffdd00' : '#555555';
       }
 
-      const btn = this.add
-        .text(GAME_WIDTH - 20, y + 4, btnText, {
-          fontFamily: '"Press Start 2P"',
-          fontSize: '6px',
-          color: btnColor,
-        })
-        .setOrigin(1, 0);
+      const btn = this.add.text(GAME_WIDTH - leftPad, y + 3, btnText, {
+        fontFamily: '"Press Start 2P"', fontSize: '7px', color: btnColor,
+      }).setOrigin(1, 0);
       expandHitArea(btn);
 
       btn.on('pointerdown', () => {
@@ -97,12 +87,10 @@ export class UpgradeScene extends Phaser.Scene {
       });
     });
 
-    // Back button — positioned in ENVELOP-safe zone (not near edges)
-    makeButton(this, GAME_WIDTH / 2, 185, 'BACK', {
-      fontFamily: '"Press Start 2P"', fontSize: '10px', color: '#ffffff',
-    }, () => {
-      fadeOut(this, 200, () => this.scene.start(returnScene));
-    });
+    // ---- Back button ----
+    makeButton(this, cx, GAME_HEIGHT - 20, 'BACK', {
+      fontFamily: '"Press Start 2P"', fontSize: '8px', color: '#aaaaaa',
+    }, () => fadeOut(this, 200, () => this.scene.start(returnScene)));
 
     fadeIn(this, 200);
   }

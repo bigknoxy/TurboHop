@@ -86,6 +86,31 @@ async function boot() {
   }
   window.addEventListener('resize', handleViewportChange);
   window.addEventListener('orientationchange', handleViewportChange);
+
+  // ---- Fullscreen API (Android immersive mode) -------------------------
+  // PWAs with `display: fullscreen` in the manifest usually get immersive
+  // mode, but the Android OS sometimes still shows status/nav bars during
+  // the first session or when the manifest hasn't been refreshed. Calling
+  // `requestFullscreen()` on the first user gesture guarantees the bars
+  // disappear. We only do this once and swallow any rejection silently (iOS
+  // doesn't support Fullscreen API on PWAs; desktop browsers may block it).
+  const enterFullscreen = () => {
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen
+      ?? (el as unknown as { webkitRequestFullscreen?: () => Promise<void> }).webkitRequestFullscreen;
+    if (rfs) {
+      rfs.call(el).catch(() => {});
+    }
+    document.removeEventListener('pointerdown', enterFullscreen);
+    document.removeEventListener('keydown', enterFullscreen);
+  };
+  // Only attempt if we're in a standalone/fullscreen PWA context — don't
+  // hijack fullscreen in a normal browser tab.
+  if (window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches
+    || (navigator as unknown as { standalone?: boolean }).standalone) {
+    document.addEventListener('pointerdown', enterFullscreen, { once: true });
+    document.addEventListener('keydown', enterFullscreen, { once: true });
+  }
 }
 
 boot();

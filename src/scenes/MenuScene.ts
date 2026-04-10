@@ -58,26 +58,19 @@ export class MenuScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    // Settings button
+    // Bottom nav — consistent 7px font for readability on mobile
+    const navFont = { fontFamily: '"Press Start 2P"', fontSize: '7px' };
     makeButton(this, GAME_WIDTH / 4, GAME_HEIGHT - 18, 'SETTINGS', {
-      fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#888888',
-    }, () => {
-      fadeOut(this, 200, () => this.scene.start('SettingsScene'));
-    });
+      ...navFont, color: '#888888',
+    }, () => fadeOut(this, 200, () => this.scene.start('SettingsScene')));
 
-    // Upgrades button
     makeButton(this, (GAME_WIDTH * 3) / 4, GAME_HEIGHT - 18, 'UPGRADES', {
-      fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#ffaa44',
-    }, () => {
-      fadeOut(this, 200, () => this.scene.start('UpgradeScene'));
-    });
+      ...navFont, color: '#ffaa44',
+    }, () => fadeOut(this, 200, () => this.scene.start('UpgradeScene')));
 
-    // Leaderboard button
     makeButton(this, GAME_WIDTH / 2, GAME_HEIGHT - 18, 'LEADERBOARD', {
-      fontFamily: '"Press Start 2P"', fontSize: '6px', color: '#44aaff',
-    }, () => {
-      fadeOut(this, 200, () => this.scene.start('LeaderboardScene'));
-    });
+      ...navFont, color: '#44aaff',
+    }, () => fadeOut(this, 200, () => this.scene.start('LeaderboardScene')));
 
     // Version
     this.add.text(GAME_WIDTH - 4, GAME_HEIGHT - 4, `v${version}`, {

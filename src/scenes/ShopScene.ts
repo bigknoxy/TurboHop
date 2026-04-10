@@ -32,57 +32,53 @@ export class ShopScene extends Phaser.Scene {
 
   create(data?: { from?: string }) {
     const returnScene = data?.from || 'MenuScene';
+    const cx = GAME_WIDTH / 2;
 
-    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x1a1a2e);
+    this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x1a1a2e);
 
-    this.add
-      .text(GAME_WIDTH / 2, 20, 'SHOP', {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '14px',
-        color: '#ffdd00',
-        stroke: '#000000',
-        strokeThickness: 3,
-      })
-      .setOrigin(0.5);
+    // ---- Header ----
+    this.add.text(cx, 16, 'SHOP', {
+      fontFamily: '"Press Start 2P"', fontSize: '14px', color: '#ffdd00',
+      stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5);
 
     const totalCoins = parseInt(localStorage.getItem('turbohop_coins') || '0', 10);
     const ownedSkins: string[] = JSON.parse(localStorage.getItem('turbohop_skins') || '["BLUE"]');
     const equippedSkin = localStorage.getItem('turbohop_skin') || 'BLUE';
 
-    this.add
-      .text(GAME_WIDTH / 2, 36, `COINS: ${totalCoins}`, {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '7px',
-        color: '#ffdd00',
-      })
-      .setOrigin(0.5);
+    this.add.text(cx, 32, `COINS: ${totalCoins}`, {
+      fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#ffdd00',
+    }).setOrigin(0.5);
 
-    // Use two columns to fit all skins within the ENVELOP-safe zone
+    // Divider
+    this.add.rectangle(cx, 42, GAME_WIDTH - 40, 1, 0xffffff, 0.1);
+
+    // ---- Skin grid — 2 columns with proper spacing ----
     const cols = 2;
-    const colWidth = (GAME_WIDTH - 40) / cols;
+    const leftPad = 16;
+    const colWidth = (GAME_WIDTH - leftPad * 2) / cols;
     const startY = 50;
-    const rowSpacing = 11;
+    const rowH = 18; // taller rows for readability
 
     SKINS.forEach((skin, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const x = 20 + col * colWidth;
-      const y = startY + row * rowSpacing;
+      const x = leftPad + col * colWidth;
+      const y = startY + row * rowH;
       const owned = ownedSkins.includes(skin.name);
       const equipped = equippedSkin === skin.name;
 
-      // Color preview
-      const preview = this.add.rectangle(x + 4, y, 6, 6, skin.color);
-      preview.setStrokeStyle(1, 0xffffff);
+      // Color swatch (larger, more visible)
+      const swatch = this.add.rectangle(x + 6, y + 4, 10, 10, skin.color);
+      swatch.setStrokeStyle(1, equipped ? 0x44ff44 : 0xffffff, equipped ? 1 : 0.4);
 
-      // Name
-      this.add.text(x + 12, y - 3, skin.name, {
-        fontFamily: '"Press Start 2P"',
-        fontSize: '4px',
-        color: '#ffffff',
+      // Name (bumped from 4px to 6px)
+      this.add.text(x + 16, y, skin.name, {
+        fontFamily: '"Press Start 2P"', fontSize: '6px',
+        color: equipped ? '#44ff44' : (owned ? '#ffffff' : '#aaaaaa'),
       });
 
-      // Button
+      // Status / Buy button
       let btnText: string;
       let btnColor: string;
       if (equipped) {
@@ -93,27 +89,21 @@ export class ShopScene extends Phaser.Scene {
         btnColor = '#44aaff';
       } else {
         btnText = `${skin.cost}C`;
-        btnColor = totalCoins >= skin.cost ? '#ffdd00' : '#666666';
+        btnColor = totalCoins >= skin.cost ? '#ffdd00' : '#555555';
       }
 
-      const btn = this.add
-        .text(x + colWidth - 10, y - 3, btnText, {
-          fontFamily: '"Press Start 2P"',
-          fontSize: '4px',
-          color: btnColor,
-        })
-        .setOrigin(1, 0);
-      expandHitArea(btn, 8, 6);
+      const btn = this.add.text(x + colWidth - 6, y, btnText, {
+        fontFamily: '"Press Start 2P"', fontSize: '5px', color: btnColor,
+      }).setOrigin(1, 0);
+      expandHitArea(btn, 8, 8);
 
       btn.on('pointerdown', () => {
         if (equipped) return;
-
         if (owned) {
           localStorage.setItem('turbohop_skin', skin.name);
           this.scene.restart({ from: returnScene });
           return;
         }
-
         const currentCoins = parseInt(localStorage.getItem('turbohop_coins') || '0', 10);
         if (currentCoins >= skin.cost) {
           localStorage.setItem('turbohop_coins', String(currentCoins - skin.cost));
@@ -126,12 +116,10 @@ export class ShopScene extends Phaser.Scene {
       });
     });
 
-    // Back button — positioned in ENVELOP-safe zone
-    makeButton(this, GAME_WIDTH / 2, 140, 'BACK', {
-      fontFamily: '"Press Start 2P"', fontSize: '10px', color: '#ffffff',
-    }, () => {
-      fadeOut(this, 200, () => this.scene.start(returnScene));
-    });
+    // ---- Back button ----
+    makeButton(this, cx, GAME_HEIGHT - 20, 'BACK', {
+      fontFamily: '"Press Start 2P"', fontSize: '8px', color: '#aaaaaa',
+    }, () => fadeOut(this, 200, () => this.scene.start(returnScene)));
 
     fadeIn(this, 200);
   }
