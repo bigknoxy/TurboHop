@@ -9,8 +9,17 @@ import { IDailyChallenge } from '../interfaces/IBackendService';
 // overlap was the "dark muddy title" bug visible in the Pixel 9a install
 // screenshot.
 const BANNER_Y = 108;
-const BANNER_WIDTH = 280;
+const BANNER_MAX_WIDTH = 280;
 const BANNER_HEIGHT = 56;
+/** Side margin kept clear of the viewport edges on narrow (e.g. 4:3 iPad) canvases. */
+const BANNER_EDGE_MARGIN = 8;
+
+function resolveBannerWidth(): number {
+  // Clamp the banner so it always fits inside the current game width with
+  // a small margin on each side. On a 480-wide Pixel 9a canvas this is
+  // just `BANNER_MAX_WIDTH`; on a 288-wide iPad canvas it shrinks to 272.
+  return Math.min(BANNER_MAX_WIDTH, GAME_WIDTH - BANNER_EDGE_MARGIN * 2);
+}
 
 export class DailyChallengeBanner {
   private scene: Phaser.Scene;
@@ -42,13 +51,14 @@ export class DailyChallengeBanner {
   }
 
   private showActiveBanner(): void {
+    const width = resolveBannerWidth();
     this.container = this.scene.add.container(GAME_WIDTH / 2, BANNER_Y);
 
-    const panel = this.scene.add.rectangle(0, 0, BANNER_WIDTH, BANNER_HEIGHT, 0x000000, 0.9);
+    const panel = this.scene.add.rectangle(0, 0, width, BANNER_HEIGHT, 0x000000, 0.9);
     panel.setStrokeStyle(2, 0xffdd00);
 
     // Left-aligned info column. Padded 14px from the left edge of the panel.
-    const leftX = -BANNER_WIDTH / 2 + 14;
+    const leftX = -width / 2 + 14;
 
     const title = this.scene.add.text(leftX, -18, 'DAILY CHALLENGE', {
       fontFamily: '"Press Start 2P"',
@@ -69,7 +79,7 @@ export class DailyChallengeBanner {
     });
 
     // Right-side PLAY button with generous hit area for mobile taps.
-    const playX = BANNER_WIDTH / 2 - 14;
+    const playX = width / 2 - 14;
     const playBtn = this.scene.add.text(playX, 0, 'PLAY', {
       fontFamily: '"Press Start 2P"',
       fontSize: '10px',
@@ -99,9 +109,10 @@ export class DailyChallengeBanner {
   }
 
   private showCompletedBanner(): void {
+    const width = resolveBannerWidth();
     this.container = this.scene.add.container(GAME_WIDTH / 2, BANNER_Y);
 
-    const panel = this.scene.add.rectangle(0, 0, BANNER_WIDTH, BANNER_HEIGHT, 0x000000, 0.9);
+    const panel = this.scene.add.rectangle(0, 0, width, BANNER_HEIGHT, 0x000000, 0.9);
     panel.setStrokeStyle(2, 0x44ff44);
 
     const title = this.scene.add.text(0, -18, 'CHALLENGE COMPLETE!', {
@@ -123,7 +134,7 @@ export class DailyChallengeBanner {
       color: '#ffdd00',
     }).setOrigin(0.5);
 
-    const closeBtn = this.scene.add.text(BANNER_WIDTH / 2 - 14, -BANNER_HEIGHT / 2 + 6, 'X', {
+    const closeBtn = this.scene.add.text(width / 2 - 14, -BANNER_HEIGHT / 2 + 6, 'X', {
       fontFamily: '"Press Start 2P"',
       fontSize: '8px',
       color: '#888888',
