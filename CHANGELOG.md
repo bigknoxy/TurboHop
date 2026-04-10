@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.8.0] - 2026-04-10
+
+- feat: polish all UI screens + Fullscreen API for immersive mode (#13) (0b419f3)
+
+
 ## [v0.7.6] - 2026-04-10
 
 - fix: PWA fullscreen polish — eliminate letterbox, self-host font, add e2e (#12) (76b15b3)
