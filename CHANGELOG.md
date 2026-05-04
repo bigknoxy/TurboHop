@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.9.0] - 2026-05-04
+
+- feat: Visual & Audio Polish Pass - CRT effects, enhanced particles, UI animations (#14) (3b7af12)
+
+
 ## [v0.8.0] - 2026-04-10
 
 - feat: polish all UI screens + Fullscreen API for immersive mode (#13) (0b419f3)
