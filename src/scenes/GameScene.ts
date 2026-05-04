@@ -138,6 +138,11 @@ export class GameScene extends Phaser.Scene {
     EventBus.on('player:dead', () => {
       if (this.gameOver) return;
       this.gameOver = true;
+
+      // Death particles (player-colored fragments with gravity)
+      const playerColor = 0x4488ff; // default player color
+      this.createDeathParticles(this.player.sprite.x, this.player.sprite.y, playerColor, 12);
+
       const scoreResults = this.scoreSystem.finalize();
       const results = {
         ...scoreResults,
@@ -161,7 +166,36 @@ export class GameScene extends Phaser.Scene {
 
     // Mission complete notification
     EventBus.on('mission:complete', (data: { mission: { description: string }; reward: number }) => {
-      this.showFloatingText(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 20, `MISSION: ${data.mission.description}`, '#44ff44');
+      // Mission complete slides in from left with bounce
+      const missionText = this.add.text(-200, GAME_HEIGHT / 2 - 20, `MISSION: ${data.mission.description}`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '8px',
+        color: '#44ff44',
+        stroke: '#000000',
+        strokeThickness: 2,
+        backgroundColor: '#00000088',
+        padding: { x: 8, y: 4 },
+      }).setOrigin(0, 0.5).setDepth(600);
+
+      this.tweens.add({
+        targets: missionText,
+        x: 10,
+        duration: 400,
+        ease: 'Bounce.easeOut',
+        onComplete: () => {
+          this.time.delayedCall(2000, () => {
+            this.tweens.add({
+              targets: missionText,
+              alpha: 0,
+              x: -200,
+              duration: 300,
+              ease: 'Power2',
+              onComplete: () => missionText.destroy(),
+            });
+          });
+        },
+      });
+
       this.showFloatingText(GAME_WIDTH / 2, GAME_HEIGHT / 2, `+${data.reward} BONUS COINS`, '#ffdd00');
     });
 
@@ -185,11 +219,14 @@ export class GameScene extends Phaser.Scene {
 
     // Vignette overlay
     if (this.textures.exists('vignette')) {
-      this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'vignette').setDepth(999).setScrollFactor(0).setAlpha(0.25);
+      this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'vignette').setName('vignette-overlay').setDepth(999).setScrollFactor(0).setAlpha(0.25);
     }
 
     // Fade in from black
     fadeIn(this, 400);
+
+    // CRT power-on effect
+    this.doCRTPowerOn();
 
     // Clean up systems when scene shuts down
     this.events.on('shutdown', () => this.shutdown());
@@ -328,10 +365,43 @@ export class GameScene extends Phaser.Scene {
     this.speedLineGfx.clear();
     if (speed < 400) return;
 
-    const intensity = (speed - 400) / 200; // 0 to 1
-    const alpha = intensity * 0.15;
-    this.speedLineGfx.lineStyle(1, 0xffffff, alpha);
+    const intensity = (speed - 400) / 200; //0 to 1
 
+    // Chromatic aberration effect - draw speed lines with RGB offset
+    const aberrationOffset = Math.floor(intensity * 3);
+
+    // Red channel (offset left)
+    this.speedLineGfx.lineStyle(1, 0xff0000, intensity * 0.1);
+    for (let i = 0; i < 8; i++) {
+      const y = ((time * 0.1 + i * 31) % GAME_HEIGHT);
+      const len = 20 + intensity * 40;
+      const x = ((time * 0.5 + i * 47) % (GAME_WIDTH + len)) - len - aberrationOffset;
+      this.speedLineGfx.moveTo(x, y);
+      this.speedLineGfx.lineTo(x + len, y);
+    }
+
+    // Green channel (center)
+    this.speedLineGfx.lineStyle(1, 0x00ff00, intensity * 0.08);
+    for (let i = 0; i < 8; i++) {
+      const y = ((time * 0.1 + i * 31 + 10) % GAME_HEIGHT);
+      const len = 20 + intensity * 40;
+      const x = ((time * 0.5 + i * 47 + 20) % (GAME_WIDTH + len)) - len;
+      this.speedLineGfx.moveTo(x, y);
+      this.speedLineGfx.lineTo(x + len, y);
+    }
+
+    // Blue channel (offset right)
+    this.speedLineGfx.lineStyle(1, 0x0000ff, intensity * 0.1);
+    for (let i = 0; i < 8; i++) {
+      const y = ((time * 0.1 + i * 31 + 20) % GAME_HEIGHT);
+      const len = 20 + intensity * 40;
+      const x = ((time * 0.5 + i * 47 + 40) % (GAME_WIDTH + len)) - len + aberrationOffset;
+      this.speedLineGfx.moveTo(x, y);
+      this.speedLineGfx.lineTo(x + len, y);
+    }
+
+    // White core lines
+    this.speedLineGfx.lineStyle(1, 0xffffff, intensity * 0.15);
     for (let i = 0; i < 8; i++) {
       const y = ((time * 0.1 + i * 31) % GAME_HEIGHT);
       const len = 20 + intensity * 40;
@@ -339,7 +409,78 @@ export class GameScene extends Phaser.Scene {
       this.speedLineGfx.moveTo(x, y);
       this.speedLineGfx.lineTo(x + len, y);
     }
+
     this.speedLineGfx.strokePath();
+
+    // Update scanline intensity based on speed
+    this.updateScanlineIntensity(intensity);
+
+    // Update vignette/curvature effect based on speed
+    this.updateVignetteIntensity(intensity, time);
+  }
+
+  private updateScanlineIntensity(intensity: number): void {
+    // Increase scanline visibility with speed
+    const scanlineAlpha = 0.12 + intensity * 0.18; // 0.12 to 0.30
+    this.scanlineGfx.clear();
+    if (!SettingsSystem.reducedMotion) {
+      this.scanlineGfx.setScrollFactor(0);
+      this.scanlineGfx.setDepth(1000);
+      this.scanlineGfx.lineStyle(1, 0x000000, scanlineAlpha);
+      for (let y = 0; y < GAME_HEIGHT; y += 2) {
+        this.scanlineGfx.moveTo(0, y);
+        this.scanlineGfx.lineTo(GAME_WIDTH, y);
+      }
+      this.scanlineGfx.strokePath();
+    }
+  }
+
+  private updateVignetteIntensity(intensity: number, _time: number): void {
+    // Screen curvature effect - vignette that increases with speed
+    // This is handled by the vignette overlay that's already created
+    // We just adjust its alpha based on speed
+    const vignetteSprite = this.children.getByName('vignette-overlay') as Phaser.GameObjects.Image;
+    if (vignetteSprite) {
+      vignetteSprite.setAlpha(0.25 + intensity * 0.35); // 0.25 to 0.60
+    }
+  }
+
+  private doCRTPowerOn(): void {
+    // CRT power-on effect: scanlines fade in, slight flicker
+    if (SettingsSystem.reducedMotion) return;
+
+    // Start with scanlines invisible
+    this.scanlineGfx.setAlpha(0);
+
+    // Flicker effect (rapid on-off-on)
+    const flickerTween = this.tweens.add({
+      targets: this.scanlineGfx,
+      alpha: 1,
+      duration: 100,
+      yoyo: true,
+      repeat: 3,
+      onComplete: () => {
+        // Final fade in
+        this.tweens.add({
+          targets: this.scanlineGfx,
+          alpha: 1,
+          duration: 200,
+        });
+      },
+    });
+
+    // Add a slight "warm-up" delay to the vignette
+    const vignetteSprite = this.children.getByName('vignette-overlay') as Phaser.GameObjects.Image;
+    if (vignetteSprite) {
+      vignetteSprite.setAlpha(0);
+      this.tweens.add({
+        targets: vignetteSprite,
+        alpha: 0.25,
+        duration: 600,
+        delay: 200,
+        ease: 'Power2',
+      });
+    }
   }
 
   private checkNearMiss(): void {
@@ -357,6 +498,8 @@ export class GameScene extends Phaser.Scene {
         enemy.setData('nearMissTriggered', true);
         this.cameras.main.flash(80, 255, 255, 255);
         this.showFloatingText(px, py - 20, 'CLOSE!', '#ff44ff');
+        this.createNearMissSparkle(px, py - 10);
+        EventBus.emit('near-miss');
       }
     });
   }
@@ -386,15 +529,16 @@ export class GameScene extends Phaser.Scene {
         if (progress >= 1) this.cameras.main.zoomTo(1, 40);
       });
 
-      // Sparkle effect
-      this.createParticles(enemy.x, enemy.y, 0xffaa00, 8);
+      // Pixel burst effect (enemy-colored)
+      const enemyColor = this.getEnemyColor(enemy);
+      this.createPixelBurst(enemy.x, enemy.y, enemyColor, 10);
 
       // Score popup
       this.showFloatingText(enemy.x, enemy.y - 10, '+10', '#ffaa00');
     } else {
       // Check shield first
       if (this.powerUpSystem.consumeShield()) {
-        this.createParticles(this.player.sprite.x, this.player.sprite.y, 0x44ff44, 8);
+        this.createPixelBurst(this.player.sprite.x, this.player.sprite.y, 0x44ff44, 8);
         this.showFloatingText(this.player.sprite.x, this.player.sprite.y - 15, 'SHIELD!', '#44ff44');
       } else {
         this.player.takeDamage();
@@ -416,8 +560,8 @@ export class GameScene extends Phaser.Scene {
     const coinValue = isDouble ? 2 : 1;
     EventBus.emit('coin:collect', { value: coinValue });
 
-    // Sparkle effect
-    this.createParticles(coin.x, coin.y, 0xffdd00, 6);
+    // Sparkle effect (star-shaped particles)
+    this.createStarParticles(coin.x, coin.y, 0xffdd00, 8);
 
     // Coin fly-to-HUD
     const flyCircle = this.add.circle(coin.x, coin.y, 4, 0xffdd00);
@@ -436,8 +580,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createParticles(x: number, y: number, color: number, count: number): void {
+    // Generic particle burst - small squares flying outward
     for (let i = 0; i < count; i++) {
-      const particle = this.add.circle(x, y, 2, color);
+      const particle = this.add.rectangle(x, y, 2, 2, color);
       const angle = (Math.PI * 2 * i) / count;
       const speed = 40 + Math.random() * 30;
       const vx = Math.cos(angle) * speed;
@@ -453,6 +598,131 @@ export class GameScene extends Phaser.Scene {
         onComplete: () => particle.destroy(),
       });
     }
+  }
+
+  private createStarParticles(x: number, y: number, color: number, count: number): void {
+    // Star-shaped particles for coin collect
+    for (let i = 0; i < count; i++) {
+      const g = this.add.graphics({ x: x, y: y });
+      // Draw a small star
+      const size = 2 + Math.random() * 2;
+      g.fillStyle(color, 1);
+      // 4-point star
+      g.fillRect(-size/2, -size, size, size * 2); // vertical
+      g.fillRect(-size, -size/2, size * 2, size); // horizontal
+      g.fillStyle(0xffffff, 0.6);
+      g.fillRect(-size/4, -size/2, size/2, size); // inner vertical
+      g.fillRect(-size/2, -size/4, size, size/2); // inner horizontal
+
+      const angle = (Math.PI * 2 * i) / count;
+      const speed = 30 + Math.random() * 40;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed - 20; // slight upward bias
+
+      this.tweens.add({
+        targets: g,
+        x: g.x + vx,
+        y: g.y + vy,
+        alpha: 0,
+        scale: 0.1,
+        duration: 400 + Math.random() * 200,
+        onComplete: () => g.destroy(),
+      });
+    }
+  }
+
+  private createPixelBurst(x: number, y: number, color: number, count: number): void {
+    // Enemy-colored pixel burst (small squares)
+    for (let i = 0; i < count; i++) {
+      const size = 1 + Math.floor(Math.random() * 3);
+      const pixel = this.add.rectangle(x, y, size, size, color);
+
+      // Random direction with slight upward bias
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+      const speed = 50 + Math.random() * 60;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed - 30;
+
+      this.tweens.add({
+        targets: pixel,
+        x: pixel.x + vx,
+        y: pixel.y + vy,
+        alpha: 0,
+        duration: 350 + Math.random() * 150,
+        onComplete: () => pixel.destroy(),
+      });
+    }
+  }
+
+  private createDeathParticles(x: number, y: number, color: number, count: number): void {
+    // Player-colored fragments with gravity fall
+    for (let i = 0; i < count; i++) {
+      const width = 2 + Math.floor(Math.random() * 4);
+      const height = 2 + Math.floor(Math.random() * 4);
+      const fragment = this.add.rectangle(x, y, width, height, color);
+
+      // Random horizontal velocity, downward gravity
+      const vx = (Math.random() - 0.5) * 100;
+      const startY = y;
+
+      this.tweens.add({
+        targets: fragment,
+        x: fragment.x + vx,
+        y: startY + 60 + Math.random() * 40, // fall down
+        alpha: 0,
+        angle: (Math.random() - 0.5) * 180, // spin
+        duration: 600 + Math.random() * 400,
+        ease: 'Power2',
+        onComplete: () => fragment.destroy(),
+      });
+    }
+  }
+
+  private createDustPuff(x: number, y: number): void {
+    // Landing dust puffs (2-3 tiny circles at player feet)
+    const puffCount = 2 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < puffCount; i++) {
+      const dx = (Math.random() - 0.5) * 16;
+      const particle = this.add.circle(x + dx, y, 1.5, 0xcccccc, 0.6);
+      this.tweens.add({
+        targets: particle,
+        y: particle.y - 6 - Math.random() * 4,
+        x: particle.x + dx * 0.5,
+        alpha: 0,
+        scale: 0.2,
+        duration: 200 + Math.random() * 100,
+        onComplete: () => particle.destroy(),
+      });
+    }
+  }
+
+  private createNearMissSparkle(x: number, y: number): void {
+    // Tense particle sparkle for near misses
+    for (let i =0; i < 4; i++) {
+      const sparkle = this.add.star(x, y, 4, 1, 3, 0xff44ff, 0.8);
+      const angle = (Math.PI * 2 * i) / 4 + Math.random() * 0.5;
+      const speed = 20 + Math.random() * 20;
+
+      this.tweens.add({
+        targets: sparkle,
+        x: sparkle.x + Math.cos(angle) * speed,
+        y: sparkle.y + Math.sin(angle) * speed,
+        alpha: 0,
+        scale: 0.5,
+        duration: 300,
+        onComplete: () => sparkle.destroy(),
+      });
+    }
+  }
+
+  private getEnemyColor(enemy: Phaser.GameObjects.Sprite): number {
+    // Return color based on enemy texture
+    const textureKey = enemy.texture.key;
+    if (textureKey === 'slime') return 0xdd3333;
+    if (textureKey === 'bird') return 0xff8844;
+    if (textureKey === 'bat') return 0x6633aa;
+    if (textureKey === 'ghost') return 0xffffff;
+    return 0xffffff; // default white
   }
 
   private spawnPowerUp(): void {
@@ -503,22 +773,6 @@ export class GameScene extends Phaser.Scene {
       speed_boost: 'BOOST',
     };
     this.showFloatingText(sprite.x, sprite.y - 10, names[type], '#44ffff');
-  }
-
-  private createDustPuff(x: number, y: number): void {
-    for (let i = 0; i < 4; i++) {
-      const dx = (Math.random() - 0.5) * 16;
-      const particle = this.add.circle(x + dx, y, 1.5, 0xcccccc, 0.6);
-      this.tweens.add({
-        targets: particle,
-        y: particle.y - 6 - Math.random() * 4,
-        x: particle.x + dx * 0.5,
-        alpha: 0,
-        scale: 0.2,
-        duration: 200 + Math.random() * 100,
-        onComplete: () => particle.destroy(),
-      });
-    }
   }
 
   private showFloatingText(x: number, y: number, text: string, color: string): void {

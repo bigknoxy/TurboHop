@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH } from '../constants';
+import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { EventBus } from '../utils/EventBus';
 import { Mission } from '../systems/MissionSystem';
 import { expandHitArea } from '../utils/ButtonHelper';
@@ -14,6 +14,8 @@ export class UIScene extends Phaser.Scene {
   private powerUpText: Phaser.GameObjects.Text | null = null;
   private displayScore = 0;
   private scoreTween: Phaser.Tweens.Tween | null = null;
+  private pauseBtn!: Phaser.GameObjects.Text;
+  private pauseOverlay: Phaser.GameObjects.Rectangle | null = null;
 
   constructor() {
     super({ key: 'UIScene' });
@@ -88,6 +90,18 @@ export class UIScene extends Phaser.Scene {
       strokeThickness: 2,
     }).setOrigin(0.5, 0);
 
+    // Pause button (top-right)
+    this.pauseBtn = this.add.text(GAME_WIDTH - 8, 20, 'II', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '8px',
+      color: '#888888',
+      stroke: '#000000',
+      strokeThickness: 1,
+    }).setOrigin(1, 0);
+    expandHitArea(this.pauseBtn);
+    this.pauseBtn.setInteractive();
+    this.pauseBtn.on('pointerdown', () => this.togglePause());
+
     // Listen to events
     EventBus.on('score:update', (data: { score: number; coins: number }) => {
       // Score roll-up animation
@@ -142,10 +156,102 @@ export class UIScene extends Phaser.Scene {
       if (this.powerUpText) {
         if (data.timeLeft > 0) {
           this.powerUpText.setText(`${data.name} ${Math.ceil(data.timeLeft / 1000)}s`);
+          // Pulse animation when < 3 seconds remaining
+          if (data.timeLeft < 3000) {
+            this.tweens.add({
+              targets: this.powerUpText,
+              scaleX: 1.3, scaleY: 1.3,
+              duration: 200,
+              yoyo: true,
+              repeat: 1,
+              ease: 'Sine.easeInOut',
+            });
+            // Change color to red for urgency
+            this.powerUpText.setColor('#ff4444');
+          } else {
+            this.powerUpText.setColor('#44ffff');
+          }
         } else {
           this.powerUpText.setText('');
         }
       }
     });
+
+    // Pause/resume functionality
+    EventBus.on('game:paused', () => this.showPauseOverlay());
+    EventBus.on('game:resumed', () => this.hidePauseOverlay());
+  }
+
+  private togglePause(): void {
+    const gameScene = this.scene.get('GameScene') as Phaser.Scene;
+    if (!gameScene) return;
+
+    if (gameScene.scene.isPaused()) {
+      gameScene.scene.resume();
+      this.hidePauseOverlay();
+      EventBus.emit('game:resumed');
+    } else {
+      gameScene.scene.pause();
+      this.showPauseOverlay();
+      EventBus.emit('game:paused');
+    }
+  }
+
+  private showPauseOverlay(): void {
+    if (this.pauseOverlay) return;
+
+    // Semi-transparent background
+    this.pauseOverlay = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7).setDepth(2000);
+
+    // Pause text
+    const pauseText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 3, 'PAUSED', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '16px',
+      color: '#ffdd00',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(2001);
+
+    // Resume button
+    const resumeBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10, 'RESUME', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '10px',
+      color: '#44ff44',
+      stroke: '#000000',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(2001).setInteractive();
+    expandHitArea(resumeBtn);
+    resumeBtn.on('pointerdown', () => this.togglePause());
+
+    // Quit button
+    const quitBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 20, 'QUIT', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '10px',
+      color: '#ff4444',
+      stroke: '#000000',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(2001).setInteractive();
+    expandHitArea(quitBtn);
+    quitBtn.on('pointerdown', () => {
+      const gameScene = this.scene.get('GameScene') as Phaser.Scene;
+      if (gameScene) {
+        gameScene.scene.stop();
+      }
+      this.scene.stop();
+      this.scene.start('MenuScene');
+    });
+  }
+
+  private hidePauseOverlay(): void {
+    if (!this.pauseOverlay) return;
+
+    // Destroy all overlay elements
+    this.children.each((child: Phaser.GameObjects.GameObject) => {
+      const obj = child as any;
+      if (obj.depth >= 2000 && obj.depth < 3000) {
+        obj.destroy();
+      }
+    });
+    this.pauseOverlay = null;
   }
 }

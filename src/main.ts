@@ -16,7 +16,7 @@ import './systems/InstallManager'; // Initialize early to capture beforeinstallp
 // doesn't depend on a Google Fonts CDN round-trip (which can fail behind
 // corporate proxies, captive portals, or plane-mode). Vite inlines the
 // @font-face rule and bundles the .woff2 file into the build.
-import '@fontsource/press-start-2p/latin-400.css';
+import '@fontsource/press-start-2p';
 
 // ---- Boot sequence --------------------------------------------------------
 // 1. Compute canvas width from viewport aspect ratio.

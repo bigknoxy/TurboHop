@@ -60,17 +60,20 @@ export class MenuScene extends Phaser.Scene {
 
     // Bottom nav — consistent 7px font for readability on mobile
     const navFont = { fontFamily: '"Press Start 2P"', fontSize: '7px' };
-    makeButton(this, GAME_WIDTH / 4, GAME_HEIGHT - 18, 'SETTINGS', {
+    const settingsBtn = makeButton(this, GAME_WIDTH / 4, GAME_HEIGHT - 18, 'SETTINGS', {
       ...navFont, color: '#888888',
     }, () => fadeOut(this, 200, () => this.scene.start('SettingsScene')));
+    this.addHoverEffect(settingsBtn);
 
-    makeButton(this, (GAME_WIDTH * 3) / 4, GAME_HEIGHT - 18, 'UPGRADES', {
+    const upgradesBtn = makeButton(this, (GAME_WIDTH * 3) / 4, GAME_HEIGHT - 18, 'UPGRADES', {
       ...navFont, color: '#ffaa44',
     }, () => fadeOut(this, 200, () => this.scene.start('UpgradeScene')));
+    this.addHoverEffect(upgradesBtn);
 
-    makeButton(this, GAME_WIDTH / 2, GAME_HEIGHT - 18, 'LEADERBOARD', {
+    const leaderboardBtn = makeButton(this, GAME_WIDTH / 2, GAME_HEIGHT - 18, 'LEADERBOARD', {
       ...navFont, color: '#44aaff',
     }, () => fadeOut(this, 200, () => this.scene.start('LeaderboardScene')));
+    this.addHoverEffect(leaderboardBtn);
 
     // Version
     this.add.text(GAME_WIDTH - 4, GAME_HEIGHT - 4, `v${version}`, {
@@ -218,6 +221,29 @@ export class MenuScene extends Phaser.Scene {
     fadeOut(this, 200, () => {
       this.scene.start('GameScene');
       this.scene.launch('UIScene');
+    });
+  }
+
+  private addHoverEffect(text: Phaser.GameObjects.Text): void {
+    // Add subtle glow/hover effect
+    text.on('pointerover', () => {
+      text.setStroke('#ffffff', 2);
+      this.tweens.add({
+        targets: text,
+        scaleX: 1.1,
+        scaleY: 1.1,
+        duration: 100,
+      });
+    });
+
+    text.on('pointerout', () => {
+      text.setStroke('#000000', 1);
+      this.tweens.add({
+        targets: text,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 100,
+      });
     });
   }
 }
