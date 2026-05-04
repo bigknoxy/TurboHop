@@ -39,10 +39,13 @@ export class AudioSystem implements ISystem {
   private musicStopped = false;
 
   private onJump = () => this.playJump();
+  private onDoubleJump = () => this.playDoubleJump();
   private onCoin = () => this.playCoin();
   private onHit = () => this.playHit();
   private onDead = () => this.playDeath();
   private onStomp = () => this.playStomp();
+  private onLanding = () => this.playLanding();
+  private onNearMiss = () => this.playNearMiss();
   private onToggle = () => this.toggleMute();
   private onDifficulty = (data: { level: number; speed: number }) => this.updateMusicTempo(data.speed);
 
@@ -50,10 +53,13 @@ export class AudioSystem implements ISystem {
     this.audioContext = getAudioContext();
 
     EventBus.on('player:jump', this.onJump);
+    EventBus.on('player:doublejump', this.onDoubleJump);
     EventBus.on('coin:collect', this.onCoin);
     EventBus.on('player:hit', this.onHit);
     EventBus.on('player:dead', this.onDead);
     EventBus.on('enemy:stomp', this.onStomp);
+    EventBus.on('player:land', this.onLanding);
+    EventBus.on('near-miss', this.onNearMiss);
     EventBus.on('audio:toggle', this.onToggle);
     EventBus.on('difficulty:change', this.onDifficulty);
 
@@ -111,13 +117,21 @@ export class AudioSystem implements ISystem {
     this.delayedTone(50, 580, 0.08, 'square', 0.08);
   }
 
+  private playDoubleJump() {
+    // Higher pitch than regular jump
+    this.playTone(660, 0.08, 'square', 0.12, true);
+    this.delayedTone(40, 880, 0.06, 'square', 0.1);
+  }
+
   private playCoin() {
     this.playTone(880, 0.08, 'square', 0.1, true);
     this.delayedTone(60, 1200, 0.12, 'square', 0.08);
+    this.delayedTone(120, 1500, 0.08, 'sine', 0.05); // extra sparkle
   }
 
   private playHit() {
     this.playTone(150, 0.2, 'sawtooth', 0.15);
+    this.delayedTone(100, 100, 0.15, 'sawtooth', 0.1); // pitch drop
   }
 
   private playDeath() {
@@ -125,11 +139,26 @@ export class AudioSystem implements ISystem {
     this.playTone(400, 0.15, 'square', 0.12);
     this.delayedTone(150, 300, 0.15, 'square', 0.1);
     this.delayedTone(300, 200, 0.3, 'square', 0.08);
+    this.delayedTone(500, 150, 0.4, 'sawtooth', 0.06); // dramatic end
   }
 
   private playStomp() {
     this.playTone(300, 0.05, 'square', 0.1);
     this.delayedTone(40, 600, 0.1, 'square', 0.08);
+    this.delayedTone(80, 800, 0.06, 'sine', 0.05); // crunch
+  }
+
+  private playLanding() {
+    // Soft thud
+    this.playTone(80, 0.08, 'sine', 0.08, true);
+    this.delayedTone(30, 60, 0.06, 'sine', 0.05);
+  }
+
+  private playNearMiss() {
+    // Tense sound - high pitch with quick decay
+    this.playTone(1200, 0.05, 'sine', 0.1, true);
+    this.delayedTone(50, 1400, 0.04, 'sine', 0.08);
+    this.delayedTone(100, 1000, 0.03, 'triangle', 0.06);
   }
 
   // --- Background Music ---
@@ -185,10 +214,13 @@ export class AudioSystem implements ISystem {
 
     // Remove only our listeners
     EventBus.off('player:jump', this.onJump);
+    EventBus.off('player:doublejump', this.onDoubleJump);
     EventBus.off('coin:collect', this.onCoin);
     EventBus.off('player:hit', this.onHit);
     EventBus.off('player:dead', this.onDead);
     EventBus.off('enemy:stomp', this.onStomp);
+    EventBus.off('player:land', this.onLanding);
+    EventBus.off('near-miss', this.onNearMiss);
     EventBus.off('audio:toggle', this.onToggle);
     EventBus.off('difficulty:change', this.onDifficulty);
   }

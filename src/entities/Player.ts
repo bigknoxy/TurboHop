@@ -83,7 +83,10 @@ export class Player extends Entity {
     }
 
     EventBus.emit('player:hp', { hp: this.hp, maxHp: this.maxHp });
+    this.isDoubleJump = false; // reset tracker
   }
+
+  private isDoubleJump = false; // track if last jump was a double jump
 
   private onInputDown() {
     if (this.dead) return;
@@ -94,7 +97,13 @@ export class Player extends Entity {
   }
 
   private emitJump() {
-    EventBus.emit('player:jump');
+    // Check if this is a double jump (jumpCount will be 2 after tryJump)
+    const wasDoubleJump = this.jumpComp['jumpCount'] === 2 || this.isDoubleJump;
+    if (wasDoubleJump) {
+      EventBus.emit('player:doublejump');
+    } else {
+      EventBus.emit('player:jump');
+    }
     this.scene.tweens.add({
       targets: this.sprite,
       scaleX: 0.8, scaleY: 1.3,
