@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.10.0] - 2026-05-05
+
+- feat: Gameplay Variety Pass — new enemies, moving platforms, multi-hit armored enemy (#15) (e42d155)
+
+
 ## [v0.9.0] - 2026-05-04
 
 - feat: Visual & Audio Polish Pass - CRT effects, enhanced particles, UI animations (#14) (3b7af12)
