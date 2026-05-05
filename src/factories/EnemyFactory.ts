@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-export type EnemyType = 'slime' | 'bird' | 'bat' | 'spike' | 'ghost';
+export type EnemyType = 'slime' | 'bird' | 'bat' | 'spike' | 'ghost' | 'flying' | 'armored';
 
 export class EnemyFactory {
   private scene: Phaser.Scene;
@@ -53,6 +53,20 @@ export class EnemyFactory {
     // Ghost starts visible
     if (type === 'ghost') {
       enemy.setAlpha(0.5);
+    }
+
+    // Flying enemy: horizontal oscillation
+    if (type === 'flying') {
+      enemy.setData('baseX', x);
+      enemy.setData('stompable', true);
+    }
+
+    // Armored enemy: multi-hit, extra coins
+    if (type === 'armored') {
+      enemy.setData('hitCount', 0);
+      enemy.setData('maxHits', 2);
+      enemy.setData('coinMultiplier', 3);
+      enemy.setData('stompable', true);
     }
 
     return enemy;
@@ -110,6 +124,15 @@ export class EnemyFactory {
           ghostBody.enable = visible;
           break;
         }
+        case 'flying': {
+          // Horizontal oscillation while moving left with game speed
+          const baseX = sprite.getData('baseX') as number;
+          sprite.x = baseX + Math.sin(timer * 0.003) * 50;
+          break;
+        }
+        case 'armored':
+          // No movement, stays in place
+          break;
       }
     });
   }
