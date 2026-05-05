@@ -517,24 +517,39 @@ export class GameScene extends Phaser.Scene {
 
     const stompable = enemy.getData('stompable') !== false;
     // Stomp check: player is falling and above the enemy (and enemy is stompable)
-    if (stompable && playerBody.velocity.y > 0 && playerBody.bottom < enemyBody.center.y) {
-      // Stomp!
-      enemy.setActive(false).setVisible(false);
-      enemyBody.stop();
-      this.player.bounce();
-      EventBus.emit('enemy:stomp');
+      if (stompable && playerBody.velocity.y > 0 && playerBody.bottom < enemyBody.center.y) {
+        const enemyType = enemy.getData('type') as string;
+        // Handle armored enemy multi-hit
+        if (enemyType === 'armored') {
+          const hitCount = (enemy.getData('hitCount') as number) + 1;
+          enemy.setData('hitCount', hitCount);
+          if (hitCount < (enemy.getData('maxHits') as number)) {
+            // Flash to indicate hit, not defeated yet
+            enemy.setAlpha(0.5);
+            this.time.delayedCall(100, () => enemy.setAlpha(1));
+            this.player.bounce();
+            EventBus.emit('enemy:stomp');
+            return;
+          }
+        }
+        // Defeat enemy (normal or armored max hits)
+        enemy.setActive(false).setVisible(false);
+        enemyBody.stop();
+        this.player.bounce();
+        EventBus.emit('enemy:stomp');
 
-      // Hitstop — camera zoom punch for impact feel
-      this.cameras.main.zoomTo(1.05, 40, 'Sine.easeOut', false, (_cam: Phaser.Cameras.Scene2D.Camera, progress: number) => {
-        if (progress >= 1) this.cameras.main.zoomTo(1, 40);
-      });
+        // Hitstop — camera zoom punch for impact feel
+        this.cameras.main.zoomTo(1.05, 40, 'Sine.easeOut', false, (_cam: Phaser.Cameras.Scene2D.Camera, progress: number) => {
+          if (progress >= 1) this.cameras.main.zoomTo(1, 40);
+        });
 
-      // Pixel burst effect (enemy-colored)
-      const enemyColor = this.getEnemyColor(enemy);
-      this.createPixelBurst(enemy.x, enemy.y, enemyColor, 10);
+        // Pixel burst effect (enemy-colored)
+        const enemyColor = this.getEnemyColor(enemy);
+        this.createPixelBurst(enemy.x, enemy.y, enemyColor, 10);
 
-      // Score popup
-      this.showFloatingText(enemy.x, enemy.y - 10, '+10', '#ffaa00');
+        // Score popup (extra coins for armored)
+        const coinMultiplier = enemy.getData('coinMultiplier') || 1;
+        this.showFloatingText(enemy.x, enemy.y - 10, `+${10 * coinMultiplier}`, '#ffaa00');
     } else {
       // Check shield first
       if (this.powerUpSystem.consumeShield()) {

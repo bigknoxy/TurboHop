@@ -60,6 +60,8 @@ export class BootScene extends Phaser.Scene {
       () => this.genBat(),
       () => this.genSpike(),
       () => this.genGhost(),
+      () => this.genFlying(),
+      () => this.genArmored(),
       () => this.genCoin(),
       () => this.generateBackground('bg-sky', 0x1a1a2e, 0x16213e, 0x0f3460),
       () => this.generateBackground('bg-mountains', -1, -1, -1, true),
@@ -229,6 +231,35 @@ export class BootScene extends Phaser.Scene {
     // Mouth (small spooky line)
     g.fillStyle(0x000000); g.fillRect(6, 9, 4, 1);
     g.generateTexture('ghost', 16, 16); g.destroy();
+  }
+
+  private genFlying(): void {
+    const g = this.make.graphics({ x: 0, y: 0 }, false);
+    // Body
+    g.fillStyle(0x44aaff); g.fillRect(4, 4, 8, 8);
+    // Wings
+    g.fillStyle(0x66bbff); g.fillTriangle(0, 6, 4, 4, 4, 10); // left wing
+    g.fillTriangle(12, 4, 16, 6, 12, 10); // right wing
+    // Eyes
+    g.fillStyle(0xffffff); g.fillCircle(6, 6, 1.5); g.fillCircle(10, 6, 1.5);
+    g.fillStyle(0x000000); g.fillCircle(6, 6, 0.8); g.fillCircle(10, 6, 0.8);
+    g.generateTexture('flying', 16, 16); g.destroy();
+  }
+
+  private genArmored(): void {
+    const g = this.make.graphics({ x: 0, y: 0 }, false);
+    // Body (similar to slime)
+    g.fillStyle(0xaa2222); g.fillRect(4, 4, 8, 8);
+    // Armor helmet
+    g.fillStyle(0x888888); g.fillRect(3, 0, 10, 4);
+    // Visor
+    g.fillStyle(0x444444); g.fillRect(5, 1, 6, 2);
+    // Body shading
+    g.fillStyle(0xbb3333); g.fillRect(4, 4, 1, 8); g.fillRect(11, 4, 1, 8);
+    // Eyes (angry)
+    g.fillStyle(0xffffff); g.fillCircle(6, 6, 1.5); g.fillCircle(10, 6, 1.5);
+    g.fillStyle(0x000000); g.fillCircle(6, 6, 0.8); g.fillCircle(10, 6, 0.8);
+    g.generateTexture('armored', 16, 16); g.destroy();
   }
 
   private genCoin(): void {

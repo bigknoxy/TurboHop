@@ -84,12 +84,14 @@ export class SpawnSystem implements ISystem {
 
     // Update enemy movement
     this.enemyFactory.updateMovement(delta);
+    // Update moving platform movement
+    this.platformFactory.updateMovingPlatforms(delta);
   }
 
   private spawnPlatform(): void {
     // Scale gaps inversely with speed so jumps remain possible at high difficulty
     const speedFactor = INITIAL_SCROLL_SPEED / this.scrollSpeed;
-    const gapY = (Math.random() - 0.5) * 80 * speedFactor;
+    const gapY = (Math.random() -0.5) * 80 * speedFactor;
     const x = GAME_WIDTH + 50;
     let y = this.lastPlatformY + gapY;
 
@@ -97,7 +99,8 @@ export class SpawnSystem implements ISystem {
     y = Math.max(60, Math.min(GAME_HEIGHT - 30, y));
 
     const wide = Math.random() < 0.3;
-    const platform = this.platformFactory.reuse(x, y, wide);
+    const moving = this.difficulty >= 2 && Math.random() < 0.1;
+    const platform = this.platformFactory.reuse(x, y, wide, moving);
     const body = platform.body as Phaser.Physics.Arcade.Body;
     body.setVelocityX(-this.scrollSpeed);
 
@@ -126,6 +129,12 @@ export class SpawnSystem implements ISystem {
       case 'ghost':
         y = 50 + Math.random() * (GAME_HEIGHT * 0.5);
         break;
+      case 'flying':
+        y = 40 + Math.random() * (GAME_HEIGHT * 0.5); // mid-air horizontal movement
+        break;
+      case 'armored':
+        y = this.lastPlatformY - 16; // on platform, multi-hit
+        break;
       default:
         y = this.lastPlatformY - 16;
     }
@@ -137,9 +146,11 @@ export class SpawnSystem implements ISystem {
 
   private pickEnemyType(): EnemyType {
     const roll = Math.random();
-    // Difficulty-gated enemy types
-    if (this.difficulty >= 5 && roll < 0.12) return 'ghost';
+    // Difficulty-gated enemy types (higher difficulty = more complex enemies)
+    if (this.difficulty >= 6 && roll < 0.10) return 'armored';
+    if (this.difficulty >= 4 && roll < 0.12) return 'ghost';
     if (this.difficulty >= 3 && roll < 0.25) return 'bat';
+    if (this.difficulty >= 2 && roll < 0.30) return 'flying';
     if (this.difficulty >= 1 && roll < 0.35) return 'spike';
     return roll < 0.6 ? 'slime' : 'bird';
   }

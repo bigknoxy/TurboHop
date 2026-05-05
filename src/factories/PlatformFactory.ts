@@ -42,7 +42,34 @@ export class PlatformFactory {
     return recycled;
   }
 
-  reuse(x: number, y: number, wide = false): Phaser.GameObjects.Sprite {
+  createMoving(x: number, y: number, moveDistance = 30): Phaser.GameObjects.Sprite {
+    const platform = this.group.create(x, y, 'platform') as Phaser.GameObjects.Sprite;
+    const body = platform.body as Phaser.Physics.Arcade.Body;
+    body.setAllowGravity(false);
+    body.setImmovable(true);
+    platform.setData('type', 'moving');
+    platform.setData('baseY', y);
+    platform.setData('moveDistance', moveDistance);
+    platform.setData('timer', 0);
+    return platform;
+  }
+
+  updateMovingPlatforms(delta: number): void {
+    this.group.getChildren().forEach((child) => {
+      const sprite = child as Phaser.GameObjects.Sprite;
+      if (!sprite.active) return;
+      const type = sprite.getData('type');
+      if (type !== 'moving') return;
+
+      const timer = (sprite.getData('timer') as number) + delta;
+      sprite.setData('timer', timer);
+      const baseY = sprite.getData('baseY') as number;
+      const moveDistance = sprite.getData('moveDistance') as number;
+      sprite.y = baseY + Math.sin(timer * 0.002) * moveDistance;
+    });
+  }
+
+  reuse(x: number, y: number, wide = false, moving = false): Phaser.GameObjects.Sprite {
     const key = wide ? 'platform-wide' : 'platform';
 
     // Try to find an inactive platform
@@ -58,11 +85,26 @@ export class PlatformFactory {
       body.reset(x, y);
       body.setAllowGravity(false);
       body.setImmovable(true);
-      // Update body size to match texture
       body.setSize(inactive.width, inactive.height);
+
+      if (moving) {
+        inactive.setData('type', 'moving');
+        inactive.setData('baseY', y);
+        inactive.setData('moveDistance', 30);
+        inactive.setData('timer', 0);
+      } else {
+        inactive.setData('type', 'static');
+        inactive.setData('baseY', undefined);
+        inactive.setData('moveDistance', undefined);
+        inactive.setData('timer', undefined);
+      }
+
       return inactive;
     }
 
+    if (moving) {
+      return this.createMoving(x, y);
+    }
     return this.create(x, y, wide);
   }
 }
