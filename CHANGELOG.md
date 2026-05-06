@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.0] - 2026-05-06
+
+- feat: expand daily rewards to 30-day cycle with milestones and add personal best rank to leaderboard (fcd32fb)
+
+
 ## [v0.10.0] - 2026-05-05
 
 - feat: Gameplay Variety Pass — new enemies, moving platforms, multi-hit armored enemy (#15) (e42d155)
