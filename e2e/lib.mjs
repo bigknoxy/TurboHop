@@ -64,7 +64,7 @@ export async function openGame({
     }, new Date().toISOString().slice(0, 10));
   }
 
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.goto(url, { waitUntil: 'load' });
   // Wait for BootScene to finish generating textures and MenuScene to
   // become the active scene. BootScene runs ~20 generators with 30ms
   // delays between them plus a 300ms fade, so ~1.5s is a safe minimum.

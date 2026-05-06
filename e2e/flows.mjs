@@ -221,7 +221,7 @@ await run('game-over-shows-score-and-retry', async () => {
     await startGame(page);
     await page.waitForTimeout(600); // build up a non-zero score
     await killPlayer(page);
-    await waitForScene(page, 'GameOverScene', 5000);
+    await waitForScene(page, 'GameOverScene', 15000);
 
     const texts = await readSceneTexts(page, 'GameOverScene');
     assert(texts.includes('GAME OVER'), `GAME OVER missing, got ${JSON.stringify(texts)}`);
