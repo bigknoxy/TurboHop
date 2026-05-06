@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.2] - 2026-05-06
+
+- fix(ci): use FIREBASE_TOKEN instead of GOOGLE_APPLICATION_CREDENTIALS (70ebe39)
+
+
 ## [v0.11.1] - 2026-05-06
 
 - fix(e2e): increase timeout and use waitUntil: load for staging tests (b47629f)
