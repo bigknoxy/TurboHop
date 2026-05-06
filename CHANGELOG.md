@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.1] - 2026-05-06
+
+- fix(e2e): increase timeout and use waitUntil: load for staging tests (b47629f)
+
+
 ## [v0.11.0] - 2026-05-06
 
 - feat: expand daily rewards to 30-day cycle with milestones and add personal best rank to leaderboard (fcd32fb)
