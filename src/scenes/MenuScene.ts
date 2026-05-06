@@ -175,28 +175,51 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private showDailyReward(result: DailyRewardResult, dailySystem: DailyRewardSystem): void {
-    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 200, 100, 0x000000, 0.85);
-    panel.setStrokeStyle(2, 0xffdd00);
+    const isMilestone = result.isSpecial;
+    const panelColor = isMilestone ? 0x1a1a2e : 0x000000;
+    const borderColor = isMilestone ? 0xffaa00 : 0xffdd00;
 
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 30, 'DAILY REWARD!', {
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 220, isMilestone ? 120 : 100, panelColor, 0.9);
+    panel.setStrokeStyle(isMilestone ? 3 : 2, borderColor);
+
+    // Milestone glow effect
+    if (isMilestone) {
+      this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 45, '★ MILESTONE! ★', {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '6px',
+        color: '#ffaa00',
+      }).setOrigin(0.5);
+    }
+
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - (isMilestone ? 30 : 30), 'DAILY REWARD!', {
       fontFamily: '"Press Start 2P"',
       fontSize: '8px',
-      color: '#ffdd00',
+      color: isMilestone ? '#ffaa00' : '#ffdd00',
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 10, `DAY ${result.streak}/${result.maxStreak}`, {
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - (isMilestone ? 15 : 10), `DAY ${result.streak}/${result.maxStreak}`, {
       fontFamily: '"Press Start 2P"',
       fontSize: '7px',
       color: '#ffffff',
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 8, `+${result.reward} COINS`, {
+    // Progress bar
+    const barWidth = 180;
+    const barHeight = 4;
+    const barX = GAME_WIDTH / 2 - barWidth / 2;
+    const barY = GAME_HEIGHT / 2 - (isMilestone ? 2 : 0);
+    this.add.rectangle(barX + barWidth / 2, barY, barWidth, barHeight, 0x333333).setOrigin(0.5);
+    const fillWidth = (result.streak / result.maxStreak) * barWidth;
+    this.add.rectangle(barX + fillWidth / 2, barY, fillWidth, barHeight, 0xffdd00).setOrigin(0.5);
+
+    const rewardColor = isMilestone ? '#ffaa00' : '#ffdd00';
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + (isMilestone ? 12 : 8), `+${result.reward} COINS`, {
       fontFamily: '"Press Start 2P"',
-      fontSize: '10px',
-      color: '#ffdd00',
+      fontSize: isMilestone ? '12px' : '10px',
+      color: rewardColor,
     }).setOrigin(0.5);
 
-    const claimBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 32, 'CLAIM', {
+    const claimBtn = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + (isMilestone ? 35 : 32), 'CLAIM', {
       fontFamily: '"Press Start 2P"',
       fontSize: '8px',
       color: '#44ff44',

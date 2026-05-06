@@ -6,3 +6,24 @@ bun.lockb
 screenshots/
 test-screens.cjs
 .gstack/
+
+# Environment and secrets
+.env
+
+# Firebase local files
+.firebase/
+
+# Playwright MCP cache
+.playwright-mcp/
+
+# Ad-hoc testing screenshots
+firebase-*.png
+github-pages-*.png
+live-site-*.png
+menu-*.png
+prod-*.png
+smoke-test-*.png
+
+# Google Cloud SDK (downloaded installer and installed SDK)
+google-cloud-cli-*.tar.gz
+google-cloud-sdk/

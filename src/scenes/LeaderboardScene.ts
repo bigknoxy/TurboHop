@@ -16,6 +16,7 @@ export class LeaderboardScene extends Phaser.Scene {
   private rankTexts: Phaser.GameObjects.Text[] = [];
   private scoreTexts: Phaser.GameObjects.Text[] = [];
   private nameTexts: Phaser.GameObjects.Text[] = [];
+  private personalBest: ILeaderboardEntry | null = null;
 
   constructor() {
     super({ key: 'LeaderboardScene' });
@@ -63,6 +64,12 @@ export class LeaderboardScene extends Phaser.Scene {
 
     try {
       await this.fetchLeaderboard();
+      // Fetch personal best
+      if (this.firebaseService) {
+        this.personalBest = await this.firebaseService.getPersonalBest(
+          this.currentTab === 'daily' ? 'current' : undefined,
+        );
+      }
       this.isLoading = false;
       this.renderLeaderboard();
     } catch (_error) {
@@ -221,6 +228,17 @@ export class LeaderboardScene extends Phaser.Scene {
         fontFamily: '"Press Start 2P"',
         fontSize: '4px',
         color: '#666666',
+      }).setOrigin(0.5);
+    }
+
+    // Show "Your Rank" if available
+    if (this.personalBest && this.personalBest.rank) {
+      const rankY = GAME_HEIGHT - 30;
+      this.add.rectangle(GAME_WIDTH / 2, rankY, GAME_WIDTH - 20, 12, 0x44aaff, 0.3);
+      this.add.text(GAME_WIDTH / 2, rankY, `YOUR RANK: #${this.personalBest.rank} (${this.personalBest.score})`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '5px',
+        color: '#44aaff',
       }).setOrigin(0.5);
     }
   }
