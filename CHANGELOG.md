@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.3] - 2026-05-06
+
+- fix(firebase): add site name to firebase.json (92e47e1)
+
+
 ## [v0.11.2] - 2026-05-06
 
 - fix(ci): use FIREBASE_TOKEN instead of GOOGLE_APPLICATION_CREDENTIALS (70ebe39)
