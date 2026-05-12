@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.4] - 2026-05-12
+
+- fix(ci): use GOOGLE_APPLICATION_CREDENTIALS for Firebase deploy (4e1ebc9)
+
+
 ## [v0.11.3] - 2026-05-06
 
 - fix(firebase): add site name to firebase.json (92e47e1)
