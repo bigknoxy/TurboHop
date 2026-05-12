@@ -58,10 +58,19 @@ TurboHop is a Phaser 3 browser platformer game (TypeScript + Vite). The player a
 
 ## Deployment Workflow
 - **Staging (Auto):** Push to `main` → GitHub Actions deploys to GitHub Pages automatically
-- **Production (Manual approval):** After testing staging, approve `deploy-firebase` workflow → Firebase Hosting + auto-versioning
-- **FIREBASE_TOKEN:** Required in GitHub Secrets for production deploys (generate with `firebase login:ci`)
+- **Production (Manual):** Approve `deploy-firebase` workflow → Firebase Hosting + auto-versioning
 - **Environment protection:** `firebase-production` environment requires manual approval before deploy
-- **Post-merge verification:** On every push/merge to `main`, run the e2e suite against the staging environment to catch regressions before approving production deploy: `TURBOHOP_URL=https://bigknoxy.github.io/TurboHop/ PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers node e2e/flows.mjs`
+- **Post-merge verification:** On every push/merge to `main`, run the e2e suite: `TURBOHOP_URL=https://bigknoxy.github.io/TurboHop/ PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers node e2e/flows.mjs`
+
+## Firebase Deployment (CRITICAL)
+- **Authentication:** Use `google-github-actions/auth@v2` action with `GOOGLE_APPLICATION_CREDENTIALS` secret (service account JSON)
+- **DO NOT use:** `FIREBASE_TOKEN` (deprecated), manual `echo` to file + environment variable approach
+- **Service Account Setup:**
+  1. Firebase Console → Project Settings → IAM → Service Accounts → Generate new private key
+  2. Add `GOOGLE_APPLICATION_CREDENTIALS` secret in GitHub with ENTIRE JSON content (no base64)
+  3. Service account needs `Firebase Admin` role
+- **Workflow:** Uses `google-github-actions/auth@v2` before `firebase deploy` command
+- **Common error "Failed to authenticate":** Usually newline stripping in secrets or wrong auth approach (see `tasks/lessons.md`)
 
 ## Documentation Rules
 Before every PR, check and update all documentation to reflect the changes being made:
