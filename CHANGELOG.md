@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.8] - 2026-05-12
+
+- docs: update Firebase deployment docs and capture lessons learned (1810f23)
+
+
 ## [v0.11.7] - 2026-05-12
 
 
