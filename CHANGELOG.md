@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.6] - 2026-05-12
+
+- fix(ci): use google-github-actions/auth for Firebase deploy (a9480b3)
+
+
 ## [v0.11.5] - 2026-05-12
 
 - fix(ci): pass GOOGLE_APPLICATION_CREDENTIALS inline instead of env block (a85407b)
