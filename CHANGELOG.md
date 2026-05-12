@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.5] - 2026-05-12
+
+- fix(ci): pass GOOGLE_APPLICATION_CREDENTIALS inline instead of env block (a85407b)
+
+
 ## [v0.11.4] - 2026-05-12
 
 - fix(ci): use GOOGLE_APPLICATION_CREDENTIALS for Firebase deploy (4e1ebc9)
