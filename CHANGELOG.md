@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.11.7] - 2026-05-12
+
+
+
+
 ## [v0.11.6] - 2026-05-12
 
 - fix(ci): use google-github-actions/auth for Firebase deploy (a9480b3)
