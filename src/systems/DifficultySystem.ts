@@ -21,11 +21,24 @@ export class DifficultySystem implements ISystem {
     this.elapsed = -delayMs;
   }
 
+  setLevel(level: number, speed: number): void {
+    this.level = Math.max(0, level);
+    this.currentSpeed = Math.min(MAX_SCROLL_SPEED, speed);
+  }
+
+  getState(): { level: number; speed: number; elapsed: number } {
+    return {
+      level: this.level,
+      speed: this.currentSpeed,
+      elapsed: this.elapsed,
+    };
+  }
+
   update(delta: number): void {
     this.elapsed += delta;
     const newLevel = Math.floor(this.elapsed / this.rampInterval);
 
-    if (newLevel > this.level) {
+    if (newLevel > this.level && newLevel >= 0) {
       this.level = newLevel;
       this.currentSpeed = Math.min(
         MAX_SCROLL_SPEED,

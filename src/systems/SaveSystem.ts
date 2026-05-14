@@ -1,4 +1,5 @@
 import { ISystem } from '../interfaces/ISystem';
+import { PowerUpType } from './PowerUpSystem';
 
 const KEYS = {
   HIGH_SCORE: 'turbohop_highscore',
@@ -10,7 +11,24 @@ const KEYS = {
   DAILY_STREAK: 'turbohop_daily_streak',
   DAILY_LAST: 'turbohop_daily_last',
   UPGRADES: 'turbohop_upgrades',
+  SESSION_STATE: 'turbohop_session',
 };
+
+const SESSION_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+
+export interface SessionState {
+  score: number;
+  coins: number;
+  stomps: number;
+  elapsed: number;
+  difficultyLevel: number;
+  scrollSpeed: number;
+  playerHp: number;
+  playerMaxHp: number;
+  activePowerUps: { type: PowerUpType; timeLeft: number }[];
+  playerX: number;
+  playerY: number;
+}
 
 export class SaveSystem implements ISystem {
   getHighScore(): number {
@@ -83,6 +101,39 @@ export class SaveSystem implements ISystem {
 
   saveUpgrades(upgrades: Record<string, number>): void {
     localStorage.setItem(KEYS.UPGRADES, JSON.stringify(upgrades));
+  }
+
+  // Session management
+  saveSession(state: Omit<SessionState, 'timestamp'>): void {
+    const data = { ...state, timestamp: Date.now() };
+    localStorage.setItem(KEYS.SESSION_STATE, JSON.stringify(data));
+  }
+
+  loadSession(): SessionState | null {
+    try {
+      const raw = localStorage.getItem(KEYS.SESSION_STATE);
+      if (!raw) return null;
+
+      const state = JSON.parse(raw) as SessionState & { timestamp: number };
+      const age = Date.now() - state.timestamp;
+
+      if (age > SESSION_EXPIRY_MS) {
+        this.clearSession();
+        return null;
+      }
+
+      return state;
+    } catch {
+      return null;
+    }
+  }
+
+  clearSession(): void {
+    localStorage.removeItem(KEYS.SESSION_STATE);
+  }
+
+  hasResumableSession(): boolean {
+    return this.loadSession() !== null;
   }
 
   update(_delta: number): void {}

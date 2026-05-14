@@ -13,6 +13,14 @@ export class Player extends Entity {
   private invincibleTimer = 0;
   private hp = 3;
   private maxHp = 3;
+
+  get currentHp(): number {
+    return this.hp;
+  }
+
+  get maxHpValue(): number {
+    return this.maxHp;
+  }
   private dead = false;
   private wasAirborne = false;
 

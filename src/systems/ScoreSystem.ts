@@ -47,6 +47,10 @@ export class ScoreSystem implements ISystem {
     return this.stomps;
   }
 
+  get elapsedTime(): number {
+    return this.elapsed;
+  }
+
   update(delta: number): void {
     this.elapsed += delta;
     const newScore = Math.floor(this.elapsed / 50);

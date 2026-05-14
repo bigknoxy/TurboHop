@@ -6,7 +6,7 @@ import { EnemyFactory } from '../factories/EnemyFactory';
 import { SpawnSystem } from '../systems/SpawnSystem';
 import { DifficultySystem } from '../systems/DifficultySystem';
 import { ScoreSystem } from '../systems/ScoreSystem';
-import { SaveSystem } from '../systems/SaveSystem';
+import { SaveSystem, type SessionState } from '../systems/SaveSystem';
 import { AudioSystem } from '../systems/AudioSystem';
 import { MissionSystem } from '../systems/MissionSystem';
 import { PowerUpSystem, PowerUpType } from '../systems/PowerUpSystem';
@@ -30,6 +30,8 @@ export class GameScene extends Phaser.Scene {
   private powerUpGroup!: Phaser.Physics.Arcade.Group;
   private powerUpTimer = 0;
   private nextPowerUpAt = 20000 + Math.random() * 10000;
+  private sessionSaveTimer = 0;
+  private readonly SESSION_SAVE_INTERVAL = 5000;
   private shieldSprite: Phaser.GameObjects.Arc | null = null;
   private passiveMagnetRange = 0;
   private bgLayers: Phaser.GameObjects.TileSprite[] = [];
@@ -72,6 +74,15 @@ export class GameScene extends Phaser.Scene {
     this.missionSystem = new MissionSystem(this.saveSystem);
     this.powerUpSystem = new PowerUpSystem();
     this.powerUpGroup = this.physics.add.group({ allowGravity: false });
+
+    // Check for resumable session (passed via data from MenuScene)
+    const resumeSession = this.data.get('resume');
+    if (resumeSession) {
+      const session = this.saveSystem.loadSession();
+      if (session) {
+        this.restoreSession(session);
+      }
+    }
 
     // Apply persistent upgrades
     const upgradeSystem = new UpgradeSystem(this.saveSystem);
@@ -142,6 +153,9 @@ export class GameScene extends Phaser.Scene {
       // Death particles (player-colored fragments with gravity)
       const playerColor = 0x4488ff; // default player color
       this.createDeathParticles(this.player.sprite.x, this.player.sprite.y, playerColor, 12);
+
+      // Clear any saved session after score is finalized
+      this.saveSystem.clearSession();
 
       const scoreResults = this.scoreSystem.finalize();
       const results = {
@@ -285,6 +299,13 @@ export class GameScene extends Phaser.Scene {
       this.spawnPowerUp();
     }
 
+    // Session auto-save every 5 seconds
+    this.sessionSaveTimer += delta;
+    if (this.sessionSaveTimer >= this.SESSION_SAVE_INTERVAL) {
+      this.sessionSaveTimer = 0;
+      this.saveSession();
+    }
+
     // Magnet effect — attract coins (power-up range 60, passive range from upgrades)
     const magnetRange = this.powerUpSystem.isActive('magnet') ? 60 : this.passiveMagnetRange;
     if (magnetRange > 0) {
@@ -348,6 +369,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   shutdown() {
+    // Save session on exit (if not game over)
+    if (!this.gameOver) {
+      this.saveSession();
+    }
+
     this.scoreSystem.destroy();
     this.audioSystem.destroy();
     this.spawnSystem.destroy();
@@ -857,5 +883,43 @@ export class GameScene extends Phaser.Scene {
       this.tutorialText = null;
     }
     this.saveSystem.setTutorialDone();
+  }
+
+  private saveSession(): void {
+    const session: Omit<SessionState, 'timestamp'> = {
+      score: this.scoreSystem.currentScore,
+      coins: this.scoreSystem.currentCoins,
+      stomps: this.scoreSystem.currentStomps,
+      elapsed: this.scoreSystem.elapsedTime,
+      difficultyLevel: this.difficultySystem.difficultyLevel,
+      scrollSpeed: this.difficultySystem.speed,
+      playerHp: this.player.currentHp,
+      playerMaxHp: this.player.maxHpValue,
+      activePowerUps: this.powerUpSystem.getActivePowerUps(),
+      playerX: this.player.sprite.x,
+      playerY: this.player.sprite.y,
+    };
+    this.saveSystem.saveSession(session);
+  }
+
+  private restoreSession(session: SessionState): void {
+    // Restore difficulty level and scroll speed immediately
+    this.difficultySystem.setLevel(session.difficultyLevel, session.scrollSpeed);
+    this.spawnSystem.setScrollSpeed(session.scrollSpeed);
+    this.spawnSystem.setDifficulty(session.difficultyLevel);
+
+    // Restore power-ups with remaining time
+    session.activePowerUps.forEach((powerUp) => {
+      if (powerUp.timeLeft > 0) {
+        this.powerUpSystem.restoreActive(powerUp.type, powerUp.timeLeft);
+      }
+    });
+
+    // Restore player position (ahead of camera for reaction time)
+    this.player.sprite.x = Math.max(50, Math.min(session.playerX, GAME_WIDTH / 2));
+    this.player.sprite.y = Math.min(Math.max(20, session.playerY), GAME_HEIGHT - 20);
+
+    // Apply HP restoration via EventBus
+    EventBus.emit('player:hp', { hp: session.playerHp, maxHp: session.playerMaxHp });
   }
 }
