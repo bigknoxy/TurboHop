@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../constants';
 import { version } from '../../package.json';
-import { SaveSystem } from '../systems/SaveSystem';
+import { SaveSystem, type SessionState } from '../systems/SaveSystem';
 import { DailyRewardSystem, DailyRewardResult } from '../systems/DailyRewardSystem';
 import { fadeIn, fadeOut } from '../utils/TransitionHelper';
 import { expandHitArea, makeButton } from '../utils/ButtonHelper';
@@ -93,9 +93,14 @@ export class MenuScene extends Phaser.Scene {
     if (result.claimed) {
       this.canStart = false;
       this.showDailyReward(result, dailySystem);
-    } else if (InstallManager.shouldShowBanner()) {
-      // Show install banner (after daily reward check, so they don't overlap)
-      this.bannerDelay = this.time.delayedCall(500, () => this.showInstallBanner());
+    } else {
+      const session = saveSystem.loadSession();
+      if (session) {
+        this.canStart = false;
+        this.showResumeDialog(saveSystem, session);
+      } else if (InstallManager.shouldShowBanner()) {
+        this.bannerDelay = this.time.delayedCall(500, () => this.showInstallBanner());
+      }
     }
 
     // Show daily challenge banner
@@ -233,6 +238,52 @@ export class MenuScene extends Phaser.Scene {
       this.canStart = true;
       this.scene.restart();
     });
+  }
+
+  private showResumeDialog(saveSystem: SaveSystem, session: SessionState): void {
+
+    const panelColor = 0x0a1628;
+    const borderColor = 0x00d4ff;
+
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 220, 100, panelColor, 0.9);
+    panel.setStrokeStyle(2, borderColor);
+    panel.setDepth(800);
+
+    const titleText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 32, 'INTERRUPTED RUN', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '8px',
+      color: '#00d4ff',
+    }).setOrigin(0.5).setDepth(801);
+
+    const scoreText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 14, `Score: ${session.score}`, {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '7px',
+      color: '#ffffff',
+    }).setOrigin(0.5).setDepth(801);
+
+    const resumeBtn = makeButton(this, GAME_WIDTH / 2 - 50, GAME_HEIGHT / 2 + 18, 'RESUME', {
+      fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#00d4ff',
+    }, () => {
+      this.bannerElements.forEach((el) => el.destroy());
+      this.bannerElements = [];
+      fadeOut(this, 200, () => {
+        this.scene.start('GameScene', { resume: true });
+        this.scene.launch('UIScene');
+      });
+    });
+    resumeBtn.setDepth(801);
+
+    const newRunBtn = makeButton(this, GAME_WIDTH / 2 + 50, GAME_HEIGHT / 2 + 18, 'NEW RUN', {
+      fontFamily: '"Press Start 2P"', fontSize: '7px', color: '#ff6644',
+    }, () => {
+      saveSystem.clearSession();
+      [titleText, scoreText, resumeBtn, newRunBtn, panel].forEach((el) => el.destroy());
+      this.canStart = true;
+      this.scene.restart();
+    });
+    newRunBtn.setDepth(801);
+
+    this.bannerElements = [panel, titleText, scoreText, resumeBtn, newRunBtn];
   }
 
   private startGame() {

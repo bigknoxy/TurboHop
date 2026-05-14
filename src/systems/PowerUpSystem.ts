@@ -93,8 +93,20 @@ export class PowerUpSystem implements ISystem {
     });
   }
 
-  getActivePowerUps(): PowerUpType[] {
-    return this.activePowerUps.map((p) => p.type);
+  getActivePowerUps(): { type: PowerUpType; timeLeft: number }[] {
+    return this.activePowerUps.map((p) => ({ type: p.type, timeLeft: p.timeLeft }));
+  }
+
+  restoreActive(type: PowerUpType, timeLeft: number): void {
+    if (this.activePowerUps.some((p) => p.type === type)) return;
+    const config = POWER_UP_CONFIG[type];
+    this.activePowerUps.push({
+      type,
+      timeLeft,
+      duration: config.duration,
+    });
+    EventBus.emit('powerup:activate', { type, name: config.name });
+    this.emitStatus(true);
   }
 
   destroy(): void {
