@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.0] - 2026-05-14
+
+- feat: add session save system for interrupted run recovery (#16) (bf8ee79)
+
+
 ## [v0.11.8] - 2026-05-12
 
 - docs: update Firebase deployment docs and capture lessons learned (1810f23)
