@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.1] - 2026-05-14
+
+
+
+
 ## [v0.12.0] - 2026-05-14
 
 - feat: add session save system for interrupted run recovery (#16) (bf8ee79)
