@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.3] - 2026-09-10
+
+- chore(deps): bump undici from 7.24.7 to 7.29.1 (#20) (706ae87)
+
+
 ## [v0.12.2] - 2026-09-10
 
 - chore(deps): bump @vitest/mocker and vitest (#19) (6d6ea96)
