@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.4] - 2026-09-10
+
+- chore(deps-dev): bump vite from 5.4.21 to 6.4.3 (#21) (62fbf7f)
+
+
 ## [v0.12.3] - 2026-09-10
 
 - chore(deps): bump undici from 7.24.7 to 7.29.1 (#20) (706ae87)
