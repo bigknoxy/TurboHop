@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.2] - 2026-09-10
+
+- chore(deps): bump @vitest/mocker and vitest (#19) (6d6ea96)
+
+
 ## [v0.12.1] - 2026-05-14
 
 
