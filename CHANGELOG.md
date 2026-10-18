@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.5] - 2026-10-18
+
+- chore(deps): bump source-map-js from 1.2.1 to 1.2.2 (#22) (7cbdad5)
+
+
 ## [v0.12.4] - 2026-09-10
 
 - chore(deps-dev): bump vite from 5.4.21 to 6.4.3 (#21) (62fbf7f)
