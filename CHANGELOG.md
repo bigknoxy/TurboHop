@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.6] - 2026-10-27
+
+- chore(deps): bump @vitest/mocker and vitest (#23) (d1ea7fd)
+
+
 ## [v0.12.5] - 2026-10-18
 
 - chore(deps): bump source-map-js from 1.2.1 to 1.2.2 (#22) (7cbdad5)
