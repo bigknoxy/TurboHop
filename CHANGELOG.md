@@ -1,6 +1,11 @@
 # Changelog
 
 
+## [v0.12.7] - 2026-10-27
+
+- chore(deps-dev): bump vite from 6.4.3 to 6.4.5 (#25) (2d5834a)
+
+
 ## [v0.12.6] - 2026-10-27
 
 - chore(deps): bump @vitest/mocker and vitest (#23) (d1ea7fd)
